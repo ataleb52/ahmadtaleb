@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import ThemeShowcase from "@/components/ThemeShowcase";
 import { LayoutShowcase } from "@/components/LayoutShowcase";
+import { HeroSection } from "@/components/HeroSection";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Button } from '@/components/ui/button';
 import './App.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'theme' | 'layout'>('layout');
+  const [activeView, setActiveView] = useState<'hero' | 'theme' | 'layout'>('hero');
   
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -20,14 +21,20 @@ function App() {
             </div>
             <div className="flex gap-2">
               <Button 
-                variant={activeTab === 'theme' ? 'default' : 'outline'} 
-                onClick={() => setActiveTab('theme')}
+                variant={activeView === 'hero' ? 'default' : 'outline'} 
+                onClick={() => setActiveView('hero')}
+              >
+                Hero
+              </Button>
+              <Button 
+                variant={activeView === 'theme' ? 'default' : 'outline'} 
+                onClick={() => setActiveView('theme')}
               >
                 Theme
               </Button>
               <Button 
-                variant={activeTab === 'layout' ? 'default' : 'outline'} 
-                onClick={() => setActiveTab('layout')}
+                variant={activeView === 'layout' ? 'default' : 'outline'} 
+                onClick={() => setActiveView('layout')}
               >
                 Layout
               </Button>
@@ -37,15 +44,17 @@ function App() {
       </header>
 
       <main>
-        {activeTab === 'theme' ? (
+        {activeView === 'hero' && <HeroSection />}
+        
+        {activeView === 'theme' && (
           <Section>
             <Container>
               <ThemeShowcase />
             </Container>
           </Section>
-        ) : (
-          <LayoutShowcase />
         )}
+        
+        {activeView === 'layout' && <LayoutShowcase />}
       </main>
     </div>
   );

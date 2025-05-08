@@ -234,3 +234,39 @@
   background-image: var(--bg-blueprint-grid);
   background-size: 20px 20px;
 }
+
+@layer utilities {
+  /* Hero section blueprint animations */
+  @keyframes blueprint-shift {
+    0% {
+      background-position: 0% 0%;
+    }
+    100% {
+      background-position: 100% 100%;
+    }
+  }
+
+  @keyframes blueprint-shift-reverse {
+    0% {
+      background-position: 100% 100%;
+    }
+    100% {
+      background-position: 0% 0%;
+    }
+  }
+
+  .animate-blueprint-shift {
+    animation: blueprint-shift 60s linear infinite alternate;
+    background-size: 50px 50px;
+  }
+
+  .animate-blueprint-shift-reverse {
+    animation: blueprint-shift-reverse 80s linear infinite alternate;
+    background-size: 70px 70px;
+  }
+
+  /* System component animations */
+  .rotate-270 {
+    transform: rotate(270deg);
+  }
+}
