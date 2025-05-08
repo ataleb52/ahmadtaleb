@@ -1,89 +1,147 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/utils"
+import React from "react";
+import { cn } from "@/lib/utils";
 
-const gridVariants = cva(
-  "grid",
-  {
-    variants: {
-      cols: {
-        1: "grid-cols-1",
-        2: "grid-cols-1 md:grid-cols-2",
-        3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
-        4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
-        6: "grid-cols-2 md:grid-cols-3 lg:grid-cols-6",
-        12: "grid-cols-4 md:grid-cols-6 lg:grid-cols-12",
-        none: "grid-cols-none",
-      },
-      gapX: {
-        default: "gap-x-4 md:gap-x-6",
-        sm: "gap-x-2 md:gap-x-3",
-        md: "gap-x-6 md:gap-x-8",
-        lg: "gap-x-8 md:gap-x-12",
-        xl: "gap-x-12 md:gap-x-16",
-        none: "gap-x-0",
-      },
-      gapY: {
-        default: "gap-y-4 md:gap-y-6",
-        sm: "gap-y-2 md:gap-y-3",
-        md: "gap-y-6 md:gap-y-8",
-        lg: "gap-y-8 md:gap-y-12",
-        xl: "gap-y-12 md:gap-y-16",
-        none: "gap-y-0",
-      },
-      blueprint: {
-        true: "blueprint-grid relative before:absolute before:inset-0 before:bg-blueprint-grid before:opacity-[0.03] before:z-[-1] before:pointer-events-none",
-      }
-    },
-    defaultVariants: {
-      cols: 2,
-      gapX: "default",
-      gapY: "default",
-      blueprint: false,
-    },
-  }
-)
+// Types for grid component props
+type GridProps = {
+  children: React.ReactNode;
+  cols?: 1 | 2 | 3 | 4 | 5 | 6;
+  gapX?: "none" | "sm" | "md" | "lg";
+  gapY?: "none" | "sm" | "md" | "lg";
+  blueprint?: boolean;
+  className?: string;
+};
 
-export interface GridProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof gridVariants> {}
+// Types for auto-grid component props
+type AutoGridProps = {
+  children: React.ReactNode;
+  minItemWidth: string;
+  gapX?: "none" | "sm" | "md" | "lg";
+  gapY?: "none" | "sm" | "md" | "lg";
+  blueprint?: boolean;
+  className?: string;
+};
 
+// Gap size mappings
+const gapSizes = {
+  none: "gap-0",
+  sm: "gap-2",
+  md: "gap-4",
+  lg: "gap-8",
+};
+
+const gapXSizes = {
+  none: "gap-x-0",
+  sm: "gap-x-2",
+  md: "gap-x-4",
+  lg: "gap-x-8",
+};
+
+const gapYSizes = {
+  none: "gap-y-0",
+  sm: "gap-y-2",
+  md: "gap-y-4",
+  lg: "gap-y-8",
+};
+
+// Column mappings for responsive design
+// Each entry specifies how many columns to display at different viewport sizes
+const colMappings = {
+  1: "grid-cols-1",
+  2: "grid-cols-1 sm:grid-cols-2",
+  3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+  4: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+  5: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+  6: "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6",
+};
+
+/**
+ * Grid component for creating responsive grid layouts
+ * 
+ * @param children - The grid items to display
+ * @param cols - Number of columns (defaults to 2)
+ * @param gapX - Horizontal gap size between items (defaults to "md")
+ * @param gapY - Vertical gap size between items (defaults to "md")
+ * @param blueprint - If true, adds a blueprint-style background
+ * @param className - Additional CSS classes
+ */
 export function Grid({
+  children,
+  cols = 2,
+  gapX = "md",
+  gapY = "md",
+  blueprint = false,
   className,
-  cols,
-  gapX,
-  gapY,
-  blueprint,
   ...props
-}: GridProps) {
+}: GridProps & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn(gridVariants({ cols, gapX, gapY, blueprint, className }))}
+      className={cn(
+        "grid",
+        colMappings[cols],
+        gapX === gapY ? gapSizes[gapX] : `${gapXSizes[gapX]} ${gapYSizes[gapY]}`,
+        blueprint &&
+          "bg-blueprint-grid bg-blueprint-bg bg-contain p-1 rounded-md border border-blueprint/20",
+        className
+      )}
       {...props}
-    />
-  )
+    >
+      {children}
+    </div>
+  );
 }
 
-// For auto-grid (auto-fit) with minimum item width
-export interface AutoGridProps extends Omit<GridProps, 'cols'> {
-  minItemWidth?: string;
-}
-
+/**
+ * AutoGrid component for creating grids with auto-sizing columns
+ * 
+ * @param children - The grid items to display
+ * @param minItemWidth - Minimum width for each item (e.g., "200px")
+ * @param gapX - Horizontal gap size between items (defaults to "md")
+ * @param gapY - Vertical gap size between items (defaults to "md")
+ * @param blueprint - If true, adds a blueprint-style background
+ * @param className - Additional CSS classes
+ */
 export function AutoGrid({
+  children,
+  minItemWidth,
+  gapX = "md",
+  gapY = "md",
+  blueprint = false,
   className,
-  minItemWidth = "250px",
-  gapX = "default",
-  gapY = "default",
-  blueprint,
   ...props
-}: AutoGridProps) {
-  const gridTemplateColumns = `repeat(auto-fit, minmax(${minItemWidth}, 1fr))`;
-  
+}: AutoGridProps & React.HTMLAttributes<HTMLDivElement>) {
+  // Convert gap sizes to CSS variables
+  const gapXValue = {
+    none: "0px",
+    sm: "0.5rem",
+    md: "1rem",
+    lg: "2rem",
+  }[gapX];
+
+  const gapYValue = {
+    none: "0px",
+    sm: "0.5rem",
+    md: "1rem",
+    lg: "2rem",
+  }[gapY];
+
   return (
     <div
-      className={cn(gridVariants({ cols: "none", gapX, gapY, blueprint }), className)}
-      style={{ gridTemplateColumns }}
+      className={cn(
+        "grid",
+        gapX === gapY ? gapSizes[gapX] : `${gapXSizes[gapX]} ${gapYSizes[gapY]}`,
+        blueprint &&
+          "bg-blueprint-grid bg-blueprint-bg bg-contain p-1 rounded-md border border-blueprint/20",
+        className
+      )}
+      style={{
+        gridTemplateColumns: `repeat(auto-fill, minmax(${minItemWidth}, 1fr))`,
+        gap: gapX === gapY ? gapXValue : undefined,
+        columnGap: gapX !== gapY ? gapXValue : undefined,
+        rowGap: gapY !== gapX ? gapYValue : undefined,
+      }}
       {...props}
-    />
-  )
+    >
+      {children}
+    </div>
+  );
 }

@@ -1,62 +1,32 @@
-import { useState } from 'react';
-import ThemeShowcase from "@/components/ThemeShowcase";
-import { LayoutShowcase } from "@/components/LayoutShowcase";
-import { HeroSection } from "@/components/HeroSection";
-import { Container } from "@/components/ui/container";
-import { Section } from "@/components/ui/section";
-import { Button } from '@/components/ui/button';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { MainLayout } from '@/layouts/MainLayout';
+import HomePage from '@/pages/HomePage';
+import AboutPage from '@/pages/AboutPage';
+import DevPage from '@/pages/dev/DevPage';
 import './App.css';
 
 function App() {
-  const [activeView, setActiveView] = useState<'hero' | 'theme' | 'layout'>('hero');
-  
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="py-4 border-b border-border">
-        <Container>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-heading">Ahmad Taleb</h1>
-              <p className="text-muted-foreground">Workshop/Blueprint Implementation</p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant={activeView === 'hero' ? 'default' : 'outline'} 
-                onClick={() => setActiveView('hero')}
-              >
-                Hero
-              </Button>
-              <Button 
-                variant={activeView === 'theme' ? 'default' : 'outline'} 
-                onClick={() => setActiveView('theme')}
-              >
-                Theme
-              </Button>
-              <Button 
-                variant={activeView === 'layout' ? 'default' : 'outline'} 
-                onClick={() => setActiveView('layout')}
-              >
-                Layout
-              </Button>
-            </div>
-          </div>
-        </Container>
-      </header>
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
-      <main>
-        {activeView === 'hero' && <HeroSection />}
-        
-        {activeView === 'theme' && (
-          <Section>
-            <Container>
-              <ThemeShowcase />
-            </Container>
-          </Section>
-        )}
-        
-        {activeView === 'layout' && <LayoutShowcase />}
-      </main>
-    </div>
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="about" element={<AboutPage />} />
+          
+          {/* Development routes - only accessible in dev mode */}
+          {isDevelopment ? (
+            <Route path="dev/*" element={<DevPage />} />
+          ) : (
+            <Route path="dev/*" element={<Navigate to="/" replace />} />
+          )}
+          
+          {/* Catch-all route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

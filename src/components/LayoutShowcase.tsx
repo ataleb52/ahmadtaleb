@@ -1,197 +1,205 @@
-import { Container } from "./ui/container";
-import { Grid, AutoGrid } from "./ui/grid";
-import { Section } from "./ui/section";
-import { BlueprintLayout } from "./layout/BlueprintLayout";
-import { Button } from "./ui/button";
+import { Section } from './ui/section';
+import { Container } from './ui/container';
+import { BlueprintAnnotation } from './ui/blueprint-annotation';
+import { Button } from './ui/button';
 
-export function LayoutShowcase() {
+export const LayoutShowcase = () => {
   return (
-    <div>
-      <Section variant="blueprint" className="mb-8">
+    <div className="space-y-12">
+      {/* Header Section with Introduction */}
+      <Section className="bg-blueprint-grid bg-opacity-10">
+        <Container size="lg" className="py-8">
+          <div className="mb-6">
+            <BlueprintAnnotation variant="technical" className="mb-2">
+              workspace/structure
+            </BlueprintAnnotation>
+            <h2 className="text-3xl font-heading mb-3">Layout System</h2>
+            <p className="text-lg max-w-2xl">
+              Carefully structured layout components that work together to create consistent, 
+              responsive interfaces. <span className="text-muted-foreground italic">Yes, we've measured twice.</span>
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Button variant="default">Explore Layouts</Button>
+            <Button variant="outline">View Documentation</Button>
+          </div>
+        </Container>
+      </Section>
+
+      {/* Container Showcase */}
+      <Section>
         <Container>
-          <h2 className="text-3xl font-heading mb-6">Layout System</h2>
-          <p className="text-lg mb-8">
-            This layout system implements Ahmad Taleb's workshop/blueprint aesthetic 
-            with responsive containers, grid systems, and blueprint styling.
-          </p>
-          
-          {/* Container Sizes Section */}
-          <div className="space-y-12">
-            <div>
-              <h3 className="text-2xl font-heading mb-4">Container Sizes</h3>
-              <p className="mb-6">
-                Containers provide consistent max-width constraints and horizontal padding.
-              </p>
-              
-              <div className="space-y-8">
-                <Container size="sm" className="bg-card/30 p-4 border border-dashed border-border">
-                  <div className="text-center">
-                    <code className="font-mono text-sm">Container (size="sm")</code>
-                  </div>
-                </Container>
-                
-                <Container size="md" className="bg-card/30 p-4 border border-dashed border-border">
-                  <div className="text-center">
-                    <code className="font-mono text-sm">Container (size="md")</code>
-                  </div>
-                </Container>
-                
-                <Container size="default" className="bg-card/30 p-4 border border-dashed border-border">
-                  <div className="text-center">
-                    <code className="font-mono text-sm">Container (size="default")</code>
-                  </div>
-                </Container>
-                
-                <Container size="full" className="bg-card/30 p-4 border border-dashed border-border">
-                  <div className="text-center">
-                    <code className="font-mono text-sm">Container (size="full")</code>
-                  </div>
-                </Container>
-              </div>
-            </div>
-            
-            {/* Grid System Section */}
-            <div>
-              <h3 className="text-2xl font-heading mb-4">Grid System</h3>
-              <p className="mb-6">
-                Grid layouts that adapt to different screen sizes and maintain the blueprint aesthetic.
-              </p>
-              
-              <div className="space-y-8">
-                <div>
-                  <p className="text-sm mb-2 font-mono text-blueprint-annotation">// 2-column grid (default)</p>
-                  <Grid className="mb-8">
-                    {Array(4).fill(0).map((_, i) => (
-                      <div key={i} className="bg-card p-4 border border-border rounded-md flex items-center justify-center h-20">
-                        Grid Item {i + 1}
-                      </div>
-                    ))}
-                  </Grid>
-                </div>
-                
-                <div>
-                  <p className="text-sm mb-2 font-mono text-blueprint-annotation">// 3-column grid with blueprint style</p>
-                  <Grid cols={3} blueprint className="mb-8">
-                    {Array(6).fill(0).map((_, i) => (
-                      <div key={i} className="bg-card p-4 border border-border rounded-md flex items-center justify-center h-20">
-                        Grid Item {i + 1}
-                      </div>
-                    ))}
-                  </Grid>
-                </div>
-                
-                <div>
-                  <p className="text-sm mb-2 font-mono text-blueprint-annotation">// Auto-grid with minimum width</p>
-                  <AutoGrid minItemWidth="150px" gapX="md" className="mb-8">
-                    {Array(5).fill(0).map((_, i) => (
-                      <div key={i} className="bg-card p-4 border border-border rounded-md flex items-center justify-center h-20">
-                        Auto Item {i + 1}
-                      </div>
-                    ))}
-                  </AutoGrid>
+          <div className="mb-8">
+            <BlueprintAnnotation variant="comment" className="mb-2">
+              // container components
+            </BlueprintAnnotation>
+            <h3 className="text-2xl font-heading mb-2">Container Components</h3>
+            <p className="text-muted-foreground mb-6">
+              Containers provide consistent horizontal padding and optional max-width constraints
+            </p>
+
+            <div className="space-y-6">
+              {/* Default Container */}
+              <div className="border border-dashed border-border rounded-md p-4">
+                <p className="text-sm font-medium mb-2">Default Container</p>
+                <div className="bg-muted p-8 rounded-md flex items-center justify-center">
+                  <span className="text-muted-foreground">max-width: 1100px, responsive padding</span>
                 </div>
               </div>
-            </div>
-            
-            {/* Section Variants */}
-            <div>
-              <h3 className="text-2xl font-heading mb-4">Section Variants</h3>
-              <p className="mb-6">
-                Different section styles to create visual hierarchy and reinforce the workshop aesthetic.
-              </p>
               
-              <div className="space-y-8">
-                <Section variant="default" className="border border-dashed border-border">
-                  <div className="p-4">
-                    <h4 className="font-heading text-xl mb-2">Default Section</h4>
-                    <p>Standard section with minimal styling</p>
-                  </div>
-                </Section>
-                
-                <Section variant="blueprint" padding="sm">
-                  <div className="p-4">
-                    <h4 className="font-heading text-xl mb-2">Blueprint Section</h4>
-                    <p>Section with blueprint styling and borders</p>
-                  </div>
-                </Section>
-                
-                <Section variant="workshop" padding="sm">
-                  <div className="p-4">
-                    <h4 className="font-heading text-xl mb-2">Workshop Section</h4>
-                    <p>Section styled with workshop aesthetic</p>
-                  </div>
-                </Section>
-                
-                <Section variant="wood" padding="sm">
-                  <div className="p-4">
-                    <h4 className="font-heading text-xl mb-2">Wood Section</h4>
-                    <p>Section with wood texture background</p>
-                  </div>
-                </Section>
+              {/* Small Container */}
+              <div className="border border-dashed border-border rounded-md p-4">
+                <p className="text-sm font-medium mb-2">Small Container</p>
+                <Container size="sm" className="bg-muted p-8 rounded-md flex items-center justify-center">
+                  <span className="text-muted-foreground">max-width: 640px</span>
+                </Container>
               </div>
-            </div>
-            
-            {/* Blueprint Layout */}
-            <div>
-              <h3 className="text-2xl font-heading mb-4">Blueprint Layout</h3>
-              <p className="mb-6">
-                Special layout for detailed workshop/blueprint components.
-              </p>
               
-              <BlueprintLayout className="mb-8">
-                <div className="flex flex-col items-center justify-center min-h-[300px]">
-                  <h4 className="font-heading text-xl mb-2">Blueprint Content</h4>
-                  <p className="mb-4 text-center max-w-md">
-                    This layout includes graph paper background, measurement markers,
-                    and optional axis lines for technical elements.
-                  </p>
-                  <Button variant="default">Workshop Action</Button>
-                </div>
-              </BlueprintLayout>
+              {/* Large Container */}
+              <div className="border border-dashed border-border rounded-md p-4">
+                <p className="text-sm font-medium mb-2">Large Container</p>
+                <Container size="lg" className="bg-muted p-8 rounded-md flex items-center justify-center">
+                  <span className="text-muted-foreground">max-width: 1280px</span>
+                </Container>
+              </div>
               
-              <BlueprintLayout gridSize="sm" showAxis={false} className="mb-8">
-                <div className="flex flex-col items-center justify-center min-h-[300px]">
-                  <h4 className="font-heading text-xl mb-2">Small Grid Blueprint</h4>
-                  <p className="mb-4 text-center max-w-md">
-                    Blueprint with smaller grid and no axis lines.
-                  </p>
-                </div>
-              </BlueprintLayout>
+              {/* Fluid Container */}
+              <div className="border border-dashed border-border rounded-md p-4">
+                <p className="text-sm font-medium mb-2">Fluid Container (Full Width)</p>
+                <Container size="fluid" className="bg-muted p-8 rounded-md flex items-center justify-center">
+                  <span className="text-muted-foreground">No max-width constraint</span>
+                </Container>
+              </div>
             </div>
           </div>
         </Container>
       </Section>
-      
-      {/* Responsive Layout Examples */}
-      <Section variant="default">
+
+      {/* Section Showcase */}
+      <div className="space-y-6">
         <Container>
-          <h3 className="text-2xl font-heading mb-4">Responsive Layout Examples</h3>
-          <p className="mb-6">
-            Examples of responsive layouts using the container and grid components.
-            Resize your browser to see how these adapt to different screen sizes.
+          <BlueprintAnnotation variant="technical" className="mb-2">
+            layout/sections
+          </BlueprintAnnotation>
+          <h3 className="text-2xl font-heading mb-2">Section Components</h3>
+          <p className="text-muted-foreground mb-6">
+            Sections provide vertical spacing and can contain optional background styling
           </p>
-          
-          <Grid cols={3} className="mb-8">
-            <div className="bg-card p-4 lg:col-span-2 border border-border rounded-md">
-              <h4 className="font-heading text-lg mb-2">Main Content</h4>
-              <p>This area spans 2 columns on large screens but stacks on mobile.</p>
+        </Container>
+        
+        {/* Default Section */}
+        <Section>
+          <Container>
+            <div className="border border-dashed border-border rounded-md p-8 text-center">
+              <p className="font-medium">Default Section</p>
+              <p className="text-sm text-muted-foreground">Standard vertical padding</p>
             </div>
-            <div className="bg-card p-4 border border-border rounded-md">
-              <h4 className="font-heading text-lg mb-2">Sidebar</h4>
-              <p>This sidebar is a single column.</p>
+          </Container>
+        </Section>
+
+        {/* Blueprint Section */}
+        <Section variant="blueprint">
+          <Container>
+            <div className="border border-blueprint rounded-md p-8 text-center">
+              <p className="font-medium">Blueprint Section</p>
+              <p className="text-sm text-muted-foreground">With blueprint grid background</p>
             </div>
-          </Grid>
-          
-          <Grid cols={4} className="mb-8">
-            {Array(4).fill(0).map((_, i) => (
-              <div key={i} className="bg-card p-4 border border-border rounded-md">
-                <h4 className="font-heading text-lg mb-2">Feature {i + 1}</h4>
-                <p>Responsive feature card that adapts to screen width.</p>
+          </Container>
+        </Section>
+
+        {/* Workshop Section */}
+        <Section variant="workshop">
+          <Container>
+            <div className="border border-workshop-wood rounded-md p-8 text-center bg-background/90">
+              <p className="font-medium">Workshop Section</p>
+              <p className="text-sm text-muted-foreground">With wood texture background</p>
+            </div>
+          </Container>
+        </Section>
+
+        {/* Muted Section */}
+        <Section variant="muted">
+          <Container>
+            <div className="border border-dashed border-border rounded-md p-8 text-center">
+              <p className="font-medium">Muted Section</p>
+              <p className="text-sm text-muted-foreground">With subtle background color</p>
+            </div>
+          </Container>
+        </Section>
+      </div>
+
+      {/* Blueprint Layout Showcase */}
+      <Section variant="blueprint">
+        <Container>
+          <div className="mb-6">
+            <BlueprintAnnotation variant="handwritten" className="mb-2">
+              check out the blueprint layout
+            </BlueprintAnnotation>
+            <h3 className="text-2xl font-heading mb-2">Blueprint Layout</h3>
+            <p className="mb-6">
+              A specialized layout for technical documentation and workshop views
+            </p>
+
+            <div className="border border-border bg-background/80 rounded-md p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <div className="lg:col-span-1 border border-dashed border-border p-4 rounded-md">
+                  <BlueprintAnnotation variant="technical" className="mb-2">
+                    sidebar/nav
+                  </BlueprintAnnotation>
+                  <ul className="space-y-2">
+                    <li className="text-sm font-medium">Navigation Item</li>
+                    <li className="text-sm font-medium text-muted-foreground">Navigation Item</li>
+                    <li className="text-sm font-medium text-muted-foreground">Navigation Item</li>
+                    <li className="text-sm font-medium text-muted-foreground">Navigation Item</li>
+                  </ul>
+                </div>
+                <div className="lg:col-span-3 border border-dashed border-border p-4 rounded-md">
+                  <BlueprintAnnotation variant="technical" className="mb-2">
+                    main/content
+                  </BlueprintAnnotation>
+                  <div className="prose prose-sm max-w-none">
+                    <h4>Blueprint Content Area</h4>
+                    <p>This area contains the main content for documentation, technical specs, or workshop instructions.</p>
+                    <p className="text-muted-foreground text-sm italic">
+                      The sidebar provides contextual navigation while the main area focuses on content.
+                    </p>
+                  </div>
+                </div>
               </div>
-            ))}
-          </Grid>
+            </div>
+          </div>
+
+          <div className="text-center mt-8">
+            <BlueprintAnnotation variant="witty">
+              all the layouts a workshop could need
+            </BlueprintAnnotation>
+          </div>
+        </Container>
+      </Section>
+
+      {/* Responsive Layout Notes */}
+      <Section>
+        <Container size="sm">
+          <div className="text-center space-y-4">
+            <BlueprintAnnotation variant="comment" className="inline-block mb-2">
+              // responsive design notes
+            </BlueprintAnnotation>
+            <h3 className="text-2xl font-heading">Responsive By Design</h3>
+            <p>
+              All layout components are fully responsive and adapt to different screen sizes.
+              From workbench to blueprint table, from desktop to mobile.
+            </p>
+            <div className="flex justify-center space-x-2 mt-4">
+              <div className="h-8 w-8 bg-muted rounded-md"></div>
+              <div className="h-8 w-6 bg-muted rounded-md"></div>
+              <div className="h-8 w-4 bg-muted rounded-md"></div>
+            </div>
+          </div>
         </Container>
       </Section>
     </div>
   );
-}
+};
+
+export default LayoutShowcase;
