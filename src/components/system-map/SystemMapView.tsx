@@ -1,12 +1,18 @@
 import { ReactFlow, Background, Controls, MiniMap, ReactFlowProvider } from '@xyflow/react';
 import type { Edge, Node, NodeMouseHandler } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import './system-map.css';
 import { BlueprintNode } from './BlueprintNode';
+import { BlueprintExpandedNode } from './BlueprintExpandedNode';
+import { WorkshopTools } from './WorkshopTools';
+import { SystemMapMeasurementMode } from './SystemMapMeasurementMode';
+import { detailedComponents } from './DetailedComponents';
 import { useState, useCallback } from 'react';
 
 // Define node types
 const nodeTypes = {
-  blueprintNode: BlueprintNode
+  blueprintNode: BlueprintNode,
+  blueprintExpandedNode: BlueprintExpandedNode
 };
 
 // Enhanced node data with more detail
@@ -122,21 +128,29 @@ const initialEdges: Edge[] = [
 ];
 
 export function SystemMapView() {
-  const [nodes, setNodes] = useState(initialNodes);
+  // Define state for nodes and edges
+  const [nodes, setNodes] = useState([...initialNodes, ...detailedComponents]);
   const [edges, setEdges] = useState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [activeTool, setActiveTool] = useState<string | null>(null);
 
+  // Filter nodes based on selected category
   const filteredNodes = filterCategory 
     ? nodes.filter(node => node.id === filterCategory || 
         (node.data.related && node.data.related.includes(filterCategory)))
     : nodes;
 
-  const onNodeClick: NodeMouseHandler = useCallback((event, node) => {
+  // Handle node click
+  const onNodeClick: NodeMouseHandler = useCallback((evt, node) => {
     console.log('Node clicked:', node);
     
     // Set the selected node for the detail panel
     setSelectedNode(node);
+    
+    // Reset expanded state when clicking a different node
+    setIsExpanded(false);
     
     // Highlight the clicked node
     setNodes((nds) => 
@@ -144,7 +158,8 @@ export function SystemMapView() {
         ...n,
         data: {
           ...n.data,
-          selected: n.id === node.id
+          selected: n.id === node.id,
+          isExpanded: false
         },
       }))
     );
@@ -165,10 +180,47 @@ export function SystemMapView() {
       }))
     );
   }, []);
+  
+  // Toggle exploded view
+  const handleToggleExpand = useCallback(() => {
+    if (!selectedNode) return;
+    
+    const newIsExpanded = !isExpanded;
+    setIsExpanded(newIsExpanded);
+    
+    // Update node to show expanded view
+    setNodes((nds) => 
+      nds.map((n) => {
+        if (n.id === selectedNode.id) {
+          return {
+            ...n,
+            type: newIsExpanded ? 'blueprintExpandedNode' : 'blueprintNode',
+            data: {
+              ...n.data,
+              isExpanded: newIsExpanded
+            }
+          };
+        }
+        return n;
+      })
+    );
+  }, [selectedNode, isExpanded]);
+  
+  // Handle zoom preset selection
+  const handleZoomPreset = useCallback((preset: 'overview' | 'detail') => {
+    setActiveTool(preset);
+    // Implement zoom logic here
+  }, []);
+
+  // Handle measurement tool toggle
+  const handleMeasureTool = useCallback(() => {
+    setActiveTool(activeTool === 'measure' ? null : 'measure');
+  }, [activeTool]);
 
   return (
     <div className="h-[600px] w-full bg-slate-900 rounded-md border border-slate-700">
-      <div className="absolute top-4 left-4 z-10 flex gap-2">
+      {/* Category filter buttons */}
+      <div className="absolute top-4 left-4 z-10 flex gap-2 flex-wrap max-w-md">
         <button 
           onClick={() => setFilterCategory(null)}
           className={`py-1.5 px-3 text-xs rounded transition-all ${
@@ -193,6 +245,17 @@ export function SystemMapView() {
           </button>
         ))}
       </div>
+      
+      {/* Workshop tools */}
+      <WorkshopTools 
+        onToggleExpand={handleToggleExpand} 
+        isExpanded={isExpanded} 
+        onMeasure={handleMeasureTool}
+        onZoomPreset={handleZoomPreset}
+        activeTool={activeTool}
+      />
+      
+      {/* Component detail panel */}
       {selectedNode && (
         <div className="absolute top-4 right-4 bg-slate-800/90 backdrop-blur p-4 rounded z-10 w-80 border border-blue-500/50 shadow-lg">
           <div className="flex justify-between items-center mb-3">
@@ -215,6 +278,37 @@ export function SystemMapView() {
             {selectedNode.data.description}
           </div>
           
+          {/* Toggle exploded view button */}
+          {selectedNode.data.layers && (
+            <div className="mb-4">
+              <button
+                onClick={handleToggleExpand}
+                className={`flex items-center justify-center w-full gap-2 py-2 text-xs rounded transition-all ${
+                  isExpanded 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-slate-700 text-slate-200 hover:bg-slate-600'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  {isExpanded ? (
+                    <>
+                      <path d="M4 14h6v6M4 10h16M14 4h6v6" />
+                    </>
+                  ) : (
+                    <>
+                      <path d="m3 16 4 4 4-4" />
+                      <path d="M7 20V4" />
+                      <path d="m21 8-4-4-4 4" />
+                      <path d="M17 4v16" />
+                    </>
+                  )}
+                </svg>
+                {isExpanded ? 'Collapse Component View' : 'Show Exploded View'}
+              </button>
+            </div>
+          )}
+          
+          {/* Code example section */}
           <div className="border-t border-slate-700 my-3 pt-3">
             <h5 className="text-xs font-medium text-slate-200 mb-2 flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -230,6 +324,7 @@ export function SystemMapView() {
             </div>
           </div>
 
+          {/* Related components section */}
           {selectedNode.data.related && (
             <div className="border-t border-slate-700 my-3 pt-3">
               <h5 className="text-xs font-medium text-slate-200 mb-2 flex items-center gap-1">
@@ -261,6 +356,7 @@ export function SystemMapView() {
             </div>
           )}
           
+          {/* Documentation link */}
           <div className="mt-4">
             <button 
               className="bg-blue-600 hover:bg-blue-500 text-white text-xs py-1.5 px-3 rounded w-full transition-colors"
@@ -275,6 +371,8 @@ export function SystemMapView() {
           </div>
         </div>
       )}
+      
+      {/* Blueprint navigation help */}
       <div className="absolute bottom-4 right-4 bg-slate-800/70 backdrop-blur p-3 rounded z-10 max-w-sm border border-slate-700">
         <h4 className="font-heading text-sm text-slate-200 mb-1">Blueprint Navigation</h4>
         <ul className="text-xs text-slate-300 space-y-1">
@@ -290,8 +388,14 @@ export function SystemMapView() {
             <span className="h-1 w-1 rounded-full bg-blue-400"></span>
             Click on nodes to select
           </li>
+          <li className="flex items-center gap-1">
+            <span className="h-1 w-1 rounded-full bg-blue-400"></span>
+            Use workshop tools to explore components
+          </li>
         </ul>
       </div>
+      
+      {/* Main ReactFlow instance */}
       <ReactFlowProvider>
         <ReactFlow 
           nodes={filteredNodes}
@@ -309,6 +413,12 @@ export function SystemMapView() {
             nodeColor="#1e293b"
             maskColor="rgba(0, 0, 0, 0.1)"
             className="bg-slate-950/30 !border-slate-700"
+          />
+          
+          {/* Measurement overlay */}
+          <SystemMapMeasurementMode 
+            measurementMode={activeTool === 'measure'}
+            onExitMeasurement={() => setActiveTool(null)}
           />
         </ReactFlow>
       </ReactFlowProvider>
