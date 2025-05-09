@@ -1,5 +1,5 @@
 import { ReactFlow, Background, Controls, MiniMap, ReactFlowProvider } from '@xyflow/react';
-import type { Edge, Node, NodeMouseHandler } from '@xyflow/react';
+import type { Edge, Node, NodeMouseHandler, NodeTypes } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import './system-map.css';
 import { BlueprintNode } from './BlueprintNode';
@@ -8,15 +8,55 @@ import { WorkshopTools } from './WorkshopTools';
 import { SystemMapMeasurementMode } from './SystemMapMeasurementMode';
 import { detailedComponents } from './DetailedComponents';
 import { useState, useCallback } from 'react';
+import { ArrowDown } from 'lucide-react';
+import {
+  AnnotationNode,
+  AnnotationNodeContent,
+  AnnotationNodeIcon,
+  AnnotationNodeNumber,
+} from '@/components/annotation-node';
+
+// Define the HeaderAnnotation component
+const HeaderAnnotation: React.FC<{ data: { number: string; title: string; primaryDescription: string; secondaryDescription: string } }> = (props) => {
+  const { data } = props;
+  
+  return (
+    <AnnotationNode className="max-w-[500px] bg-muted/50 backdrop-blur-sm border border-muted rounded-md">
+      <AnnotationNodeNumber>{data.number}</AnnotationNodeNumber>
+      <AnnotationNodeContent>
+        <h2 className="text-xl font-bold mb-2">{data.title}</h2>
+        <p className="text-sm mb-2">{data.primaryDescription}</p>
+        <p className="text-xs text-muted-foreground">{data.secondaryDescription}</p>
+      </AnnotationNodeContent>
+      <AnnotationNodeIcon>
+        <ArrowDown />
+      </AnnotationNodeIcon>
+    </AnnotationNode>
+  );
+};
 
 // Define node types
-const nodeTypes = {
+const nodeTypes: NodeTypes = {
   blueprintNode: BlueprintNode,
-  blueprintExpandedNode: BlueprintExpandedNode
+  blueprintExpandedNode: BlueprintExpandedNode,
+  annotationHeader: HeaderAnnotation
 };
 
 // Enhanced node data with more detail
 const initialNodes = [
+  {
+    id: 'header',
+    type: 'annotationHeader',
+    position: { x: 20, y: 20 },
+    data: {
+      number: '',
+      title: 'Workshop Blueprint Design System',
+      primaryDescription:
+        'A technical design system that embodies the methodical problem-solving approach of a workshop engineer — practical, purposeful, and built to last.',
+      secondaryDescription:
+        'This system showcases my personal aesthetic and programming approach, combining the precision of technical blueprints with the practicality of workshop tools.',
+    },
+  },
   {
     id: 'foundations',
     type: 'blueprintNode',
@@ -143,7 +183,7 @@ export function SystemMapView() {
     : nodes;
 
   // Handle node click
-  const onNodeClick: NodeMouseHandler = useCallback((evt, node) => {
+  const onNodeClick: NodeMouseHandler = useCallback((_evt, node) => {
     console.log('Node clicked:', node);
     
     // Set the selected node for the detail panel
@@ -407,7 +447,7 @@ export function SystemMapView() {
           attributionPosition="bottom-right"
           onNodeClick={onNodeClick}
         >
-          <Background color="#4a5568" gap={20} size={1} variant="dots" />
+          <Background color="#4a5568" gap={20} size={1} />
           <Controls className="bg-background/80" />
           <MiniMap 
             nodeColor="#1e293b"
