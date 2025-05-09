@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { SystemMapView } from "@/components/system-map/SystemMapView";
 import { BlueprintAnnotation } from "@/components/ui/blueprint-annotation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export function OverviewPage() {
+  const [showSystemMap, setShowSystemMap] = useState(false);
+
   return (
     <div>
       {/* Introduction */}
@@ -25,7 +29,36 @@ export function OverviewPage() {
           This system showcases my personal aesthetic and programming approach,
           combining the precision of technical blueprints with the practicality of workshop tools.
         </p>
+
+        <div className="mt-8">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowSystemMap(!showSystemMap)}
+            className="flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M2 9.3a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
+              <path d="M10 17.4a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
+              <path d="M18 9.3a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
+              <path d="M5 12.5v1.4" />
+              <path d="M19 12.5v1.4" />
+              <path d="M5 9.3h13" />
+            </svg>
+            {showSystemMap ? 'Hide System Map' : 'View System Map'}
+          </Button>
+        </div>
       </section>
+
+      {/* System Map View */}
+      {showSystemMap && (
+        <section className="mb-16">
+          <BlueprintAnnotation variant="comment" className="mb-4">
+            // system map visualization
+          </BlueprintAnnotation>
+          <h2 className="font-heading text-2xl mb-6">Workshop Blueprint System Map</h2>
+          <SystemMapView />
+        </section>
+      )}
 
       {/* Quick Navigation */}
       <section className="mb-16">
