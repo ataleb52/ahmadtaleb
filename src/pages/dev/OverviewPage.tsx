@@ -6,39 +6,49 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 
 export function OverviewPage() {
-  const [showSystemMap, setShowSystemMap] = useState(false);
+  const [showSystemMap, setShowSystemMap] = useState(true);
 
   return (
     <div>
-      {/* System Map Control */}
-      <section className="mb-6">
-        <div className="mb-4">
+      {/* System Map is shown by default */}
+      <section className="mb-2">
+        <div className="flex justify-end mb-2">
           <Button 
             variant="outline" 
             onClick={() => setShowSystemMap(!showSystemMap)}
             className="flex items-center gap-2"
+            size="sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M2 9.3a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
-              <path d="M10 17.4a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
-              <path d="M18 9.3a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
-              <path d="M5 12.5v1.4" />
-              <path d="M19 12.5v1.4" />
-              <path d="M5 9.3h13" />
+              {showSystemMap ? (
+                <>
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </>
+              ) : (
+                <>
+                  <path d="M2 9.3a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
+                  <path d="M10 17.4a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
+                  <path d="M18 9.3a3 3 0 1 1 6 0 3 3 0 0 1-6 0Z" />
+                  <path d="M5 12.5v1.4" />
+                  <path d="M19 12.5v1.4" />
+                  <path d="M5 9.3h13" />
+                </>
+              )}
             </svg>
-            {showSystemMap ? 'Hide System Map' : 'View System Map'}
+            {showSystemMap ? 'Hide System Map' : 'Show System Map'}
           </Button>
         </div>
       </section>
 
-      {/* System Map View */}
+      {/* System Map View - Now primary content */}
       {showSystemMap && (
-        <section className="mb-16">
+        <section className="mb-16 border border-blue-500/20 rounded-lg p-1 bg-slate-900/30">
           <SystemMapView />
         </section>
       )}
 
-      {/* Quick Navigation */}
+      {/* Quick Navigation - Only shown when system map is hidden or below it */}
       <section className="mb-16">
         <h2 className="font-heading text-2xl mb-6">Explore the System</h2>
         

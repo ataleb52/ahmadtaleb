@@ -446,7 +446,7 @@ export function SystemMapView() {
           </div>
           
           {/* Toggle exploded view button */}
-          {typeof selectedNode.data.layers !== 'undefined' && (
+          {selectedNode.data.layers && (
             <div className="mb-4">
               <button
                 onClick={handleToggleExpand}
