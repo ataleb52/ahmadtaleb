@@ -150,7 +150,7 @@ export const buttonComponent: ComponentData = {
 </Button>`,
     related: ['components']
   },
-  position: { x: 50, y: 150 }
+  position: { x: 50, y: 250 }
 };
 
 // Card component with detailed layers
@@ -248,7 +248,7 @@ export const cardComponent: ComponentData = {
 </Card>`,
     related: ['components']
   },
-  position: { x: 150, y: 150 }
+  position: { x: 150, y: 250 }
 };
 
 // Detailed layout pattern
@@ -341,7 +341,7 @@ export const layoutComponent: ComponentData = {
 </PageLayout>`,
     related: ['patterns']
   },
-  position: { x: 350, y: 150 }
+  position: { x: 350, y: 250 }
 };
 
 // Color system component data
@@ -447,7 +447,7 @@ import { cn } from "@/lib/utils";
 </div>`,
     related: ['foundations']
   },
-  position: { x: 150, y: 50 }
+  position: { x: 550, y: 250 }
 };
 
 // Collection of components for detailed exploded view

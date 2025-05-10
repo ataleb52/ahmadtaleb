@@ -21,15 +21,15 @@ const HeaderAnnotation: React.FC<{ data: { number: string; title: string; primar
   const { data } = props;
   
   return (
-    <AnnotationNode className="max-w-[500px] bg-muted/50 backdrop-blur-sm border border-muted rounded-md">
+    <AnnotationNode className="max-w-[700px] bg-slate-800/90 backdrop-blur border-2 border-blue-500/50 shadow-xl rounded-md">
       <AnnotationNodeNumber>{data.number}</AnnotationNodeNumber>
       <AnnotationNodeContent>
-        <h2 className="text-xl font-bold mb-2">{data.title}</h2>
-        <p className="text-sm mb-2">{data.primaryDescription}</p>
-        <p className="text-xs text-muted-foreground">{data.secondaryDescription}</p>
+        <h2 className="text-2xl font-bold mb-3 text-blue-300">{data.title}</h2>
+        <p className="text-sm mb-3 text-slate-200">{data.primaryDescription}</p>
+        <p className="text-xs text-slate-400">{data.secondaryDescription}</p>
       </AnnotationNodeContent>
       <AnnotationNodeIcon>
-        <ArrowDown />
+        <ArrowDown className="text-blue-400 animate-bounce" />
       </AnnotationNodeIcon>
     </AnnotationNode>
   );
@@ -47,7 +47,8 @@ const initialNodes = [
   {
     id: 'header',
     type: 'annotationHeader',
-    position: { x: 20, y: 20 },
+    position: { x: 250, y: 10 },
+    draggable: false, // Make it non-draggable to keep it fixed at the top
     data: {
       number: '',
       title: 'Workshop Blueprint Design System',
@@ -78,7 +79,7 @@ const primaryColor = colors.primary[500];
 const headingFont = typography.fontFamily.heading;`,
       related: ['components', 'patterns']
     },
-    position: { x: 250, y: 50 },
+    position: { x: 250, y: 220 },
   },
   {
     id: 'components',
@@ -96,7 +97,7 @@ const headingFont = typography.fontFamily.heading;`,
       ),
       items: ['Buttons', 'Cards', 'Forms', 'Navigation']
     },
-    position: { x: 100, y: 200 },
+    position: { x: 100, y: 370 },
   },
   {
     id: 'patterns',
@@ -113,7 +114,7 @@ const headingFont = typography.fontFamily.heading;`,
       ),
       items: ['Page Layouts', 'Navigation Patterns', 'Data Display', 'Interactions']
     },
-    position: { x: 400, y: 200 },
+    position: { x: 400, y: 370 },
   },
   {
     id: 'tech-stack',
@@ -131,7 +132,7 @@ const headingFont = typography.fontFamily.heading;`,
       ),
       items: ['React', 'TypeScript', 'Tailwind CSS', 'Next.js']
     },
-    position: { x: 250, y: 350 },
+    position: { x: 250, y: 520 },
   },
 ];
 
@@ -258,9 +259,9 @@ export function SystemMapView() {
   }, [activeTool]);
 
   return (
-    <div className="h-[600px] w-full bg-slate-900 rounded-md border border-slate-700">
+    <div className="h-[800px] w-full bg-slate-900 rounded-md border border-slate-700">
       {/* Category filter buttons */}
-      <div className="absolute top-4 left-4 z-10 flex gap-2 flex-wrap max-w-md">
+      <div className="absolute top-[180px] left-4 z-10 flex gap-2 flex-wrap max-w-md">
         <button 
           onClick={() => setFilterCategory(null)}
           className={`py-1.5 px-3 text-xs rounded transition-all ${
@@ -413,7 +414,7 @@ export function SystemMapView() {
       )}
       
       {/* Blueprint navigation help */}
-      <div className="absolute bottom-4 right-4 bg-slate-800/70 backdrop-blur p-3 rounded z-10 max-w-sm border border-slate-700">
+      <div className="absolute bottom-4 right-8 bg-slate-800/70 backdrop-blur p-3 rounded z-10 max-w-sm border border-slate-700">
         <h4 className="font-heading text-sm text-slate-200 mb-1">Blueprint Navigation</h4>
         <ul className="text-xs text-slate-300 space-y-1">
           <li className="flex items-center gap-1">
@@ -442,7 +443,8 @@ export function SystemMapView() {
           edges={edges}
           nodeTypes={nodeTypes}
           fitView
-          minZoom={0.5}
+          fitViewOptions={{ padding: 0.2 }}
+          minZoom={0.4}
           maxZoom={1.5}
           attributionPosition="bottom-right"
           onNodeClick={onNodeClick}

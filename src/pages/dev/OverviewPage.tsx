@@ -10,27 +10,9 @@ export function OverviewPage() {
 
   return (
     <div>
-      {/* Introduction */}
-      <section className="mb-16">
-        <BlueprintAnnotation variant="comment" className="mb-4">
-          // design system documentation
-        </BlueprintAnnotation>
-        
-        <h1 className="font-heading text-4xl md:text-5xl mb-6">
-          Workshop Blueprint Design System
-        </h1>
-        
-        <p className="text-xl max-w-3xl mb-4">
-          A technical design system that embodies the methodical problem-solving 
-          approach of a workshop engineer — practical, purposeful, and built to last.
-        </p>
-        
-        <p className="text-muted-foreground max-w-3xl">
-          This system showcases my personal aesthetic and programming approach,
-          combining the precision of technical blueprints with the practicality of workshop tools.
-        </p>
-
-        <div className="mt-8">
+      {/* System Map Control */}
+      <section className="mb-6">
+        <div className="mb-4">
           <Button 
             variant="outline" 
             onClick={() => setShowSystemMap(!showSystemMap)}
@@ -52,10 +34,6 @@ export function OverviewPage() {
       {/* System Map View */}
       {showSystemMap && (
         <section className="mb-16">
-          <BlueprintAnnotation variant="comment" className="mb-4">
-            // system map visualization
-          </BlueprintAnnotation>
-          <h2 className="font-heading text-2xl mb-6">Workshop Blueprint System Map</h2>
           <SystemMapView />
         </section>
       )}
