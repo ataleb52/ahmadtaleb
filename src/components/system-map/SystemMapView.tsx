@@ -5,7 +5,7 @@ import '@xyflow/react/dist/style.css';
 import './system-map.css';
 import { BlueprintNode } from './BlueprintNode';
 import { BlueprintExpandedNode } from './BlueprintExpandedNode';
-import { WorkshopTools } from './WorkshopTools';
+import { CanvasControls } from './CanvasControls';
 import { SystemMapMeasurementMode } from './SystemMapMeasurementMode';
 import { detailedComponents } from './DetailedComponents';
 import { useState, useCallback, useEffect, useRef } from 'react';
@@ -231,7 +231,7 @@ export function SystemMapView() {
       headerX = Math.max(10, (viewportWidth / 2) - (headerWidth / 2));
     }
     
-    // Apply auto layout with header properly centered
+    // Apply auto layout with header properly centered and positioned higher
     const layoutedElements = getLayoutedElements(
       combinedNodes, 
       initialEdges, 
@@ -239,7 +239,9 @@ export function SystemMapView() {
       { 
         ranksep: 100,
         nodesep: 50,
-        headerX
+        headerX,
+        headerY: -250, // Add negative value to move header higher up
+        headerPadding: 50 // Increase spacing between header and first row of nodes
       }
     );
     
@@ -284,7 +286,9 @@ export function SystemMapView() {
         {
           ranksep: 100,
           nodesep: 50,
-          headerX
+          headerX,
+          headerY: -20, // Add negative value to move header higher up
+          headerPadding: 60 // Increase spacing between header and first row of nodes
         }
       );
       
@@ -386,35 +390,10 @@ export function SystemMapView() {
 
   return (
     <div ref={flowContainerRef} className="h-[800px] w-full bg-slate-900 rounded-md border border-slate-700">
-      {/* Category filter buttons */}
-      <div className="absolute top-[180px] left-4 z-10 flex gap-2 flex-wrap max-w-md">
-        <button 
-          onClick={() => setFilterCategory(null)}
-          className={`py-1.5 px-3 text-xs rounded transition-all ${
-            filterCategory === null 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
-          }`}
-        >
-          All
-        </button>
-        {['foundations', 'components', 'patterns', 'tech-stack'].map((category) => (
-          <button
-            key={category}
-            onClick={() => setFilterCategory(category)}
-            className={`py-1.5 px-3 text-xs rounded transition-all ${
-              filterCategory === category
-                ? 'bg-blue-600 text-white' 
-                : 'bg-slate-800/70 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            {category.charAt(0).toUpperCase() + category.slice(1)}
-          </button>
-        ))}
-      </div>
-      
-      {/* Workshop tools */}
-      <WorkshopTools 
+      {/* Integrated canvas controls */}
+      <CanvasControls
+        onCategoryFilter={setFilterCategory}
+        selectedCategory={filterCategory}
         onToggleExpand={handleToggleExpand} 
         isExpanded={isExpanded} 
         onMeasure={handleMeasureTool}
@@ -569,7 +548,11 @@ export function SystemMapView() {
           edges={edges}
           nodeTypes={nodeTypes}
           fitView
-          fitViewOptions={{ padding: 0.2 }}
+          fitViewOptions={{ 
+            padding: 0.1,  // Reduce this value from 0.2
+            minZoom: 0.5,
+            maxZoom: 1.2
+          }}
           minZoom={0.4}
           maxZoom={1.5}
           attributionPosition="bottom-right"

@@ -19,26 +19,26 @@ export function DesignSystemLayout() {
     <div className="design-system-layout relative">
       <div className="sticky top-0 z-10 border-b border-border backdrop-blur-sm bg-background/95">
         <Container>
-          <div className="py-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="font-heading text-xl">Workshop Blueprint</h2>
-              <BlueprintAnnotation variant="note" size="sm">
+          <div className="py-1 flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <h2 className="font-heading text-sm">Workshop Blueprint</h2>
+              <BlueprintAnnotation variant="note" size="xs">
                 Design System
               </BlueprintAnnotation>
             </div>
             
-            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+            <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">
               ← Back to main site
             </Link>
           </div>
           
-          <nav className="flex gap-6 pb-2 overflow-x-auto scrollbar-thin">
+          <nav className="flex gap-2 overflow-x-auto scrollbar-thin">
             {navigation.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "pb-2 px-1 border-b-2 transition-colors whitespace-nowrap",
+                  "py-0.5 px-1 border-b-2 transition-colors whitespace-nowrap text-sm",
                   currentPath === item.path
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground"

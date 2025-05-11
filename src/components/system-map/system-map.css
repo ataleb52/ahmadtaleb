@@ -7,6 +7,203 @@
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Canvas Controls */
+.canvas-controls-floating {
+  position: absolute;
+  top: 120px; /* Position below the header annotation */
+  left: 20px; /* Position at the left side within the canvas */
+  transform: none; /* Remove the horizontal centering */
+  background: rgba(15, 23, 42, 0.85); /* Slightly darker for better contrast */
+  backdrop-filter: blur(8px);
+  border-radius: 6px;
+  padding: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10; /* Ensure it sits above the ReactFlow nodes but below modals */
+  border: 1px solid #334155;
+  width: auto;
+  max-width: 300px; /* Limit width to fit nicely in the corner */
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Collapsed state */
+.canvas-controls-floating.collapsed {
+  top: 120px; /* Maintain same position when collapsed */
+  left: 20px;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto; /* Allow it to shrink to content size when collapsed */
+  max-width: none;
+}
+
+/* Hover effect for better visibility */
+.canvas-controls-floating:not(:hover) {
+  opacity: 0.8;
+}
+
+/* Animation for expand/collapse */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.canvas-controls-floating:not(.collapsed) {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Mobile specific styles */
+.canvas-controls-floating.mobile {
+  max-width: 260px;
+  width: auto;
+  top: 120px; /* Positioned below header on mobile too */
+  left: 20px;
+}
+
+.canvas-controls-floating.mobile.collapsed {
+  width: auto;
+  max-width: none;
+  border-radius: 20px;
+  top: 120px;
+  left: 20px;
+}
+
+.controls-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.controls-header h3 {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.collapse-btn, .expand-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  appearance: none;
+}
+
+.collapse-btn:hover, .expand-btn:hover {
+  background-color: #334155;
+  color: #cbd5e1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.controls-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.controls-section.hidden {
+  display: none;
+}
+
+.controls-section h4 {
+  font-size: 0.7rem;
+  color: #cbd5e1;
+  font-weight: 500;
+  margin: 0;
+}
+
+.filter-buttons, .tool-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.filter-btn, .tool-btn {
+  background-color: #334155;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  appearance: none;
+  backdrop-filter: blur(4px); /* Add blur effect to match ReactFlow UI */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+}
+
+.filter-btn:hover, .tool-btn:hover {
+  background-color: #475569;
+  border-color: #64748b;
+}
+
+.filter-btn.active, .tool-btn.active {
+  background-color: #1d4ed8;
+  border-color: #2563eb;
+  color: white;
+}
+
+/* Tabs for mobile view */
+.tabs-container {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #1e293b;
+  padding: 2px;
+}
+
+.tab-btn {
+  flex: 1;
+  background-color: #1e293b;
+  color: #94a3b8;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  appearance: none;
+}
+
+.tab-btn:hover {
+  background-color: #334155;
+  color: #cbd5e1;
+}
+
+.tab-btn.active {
+  background-color: #334155;
+  color: white;
+  font-weight: 500;
+}
+
 .workshop-tool {
   background-color: #1e293b;
   border: 1px solid #475569;
@@ -122,7 +319,7 @@
 }
 
 /* Perspective container for 3D effects */
-.perspective-[800px] {
+.perspective-800 {
   perspective: 800px;
 }
 
