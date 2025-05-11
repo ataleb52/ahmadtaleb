@@ -325,4 +325,10 @@
     animation: line-draw 1.5s ease-out forwards;
     opacity: 0;
   }
+  
+  @keyframes pulse-gradient {
+    0% { background-color: theme('colors.blueprint.DEFAULT'); }
+    50% { background-color: theme('colors.blueprint.600'); }
+    100% { background-color: theme('colors.blueprint.DEFAULT'); }
+  }
 }
