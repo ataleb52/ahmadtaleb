@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design System Bootcamp: Surviving the Style Wars</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Prism for code highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Workshop/Blueprint themed colors using OKLCH for better color accuracy */
+      --background: oklch(0.25 0.012 280);
+      --foreground: oklch(0.98 0.003 280);
+      --blueprint: oklch(0.58 0.17 230);
+      --blueprint-600: oklch(0.48 0.17 230);
+      --blueprint-grid: oklch(0.68 0.12 230 / 0.6);
+      --blueprint-annotation: oklch(0.92 0.03 220);
+      --workshop-wood: oklch(0.55 0.13 60);
+      --chalk-white: oklch(0.98 0.005 75);
+      --card: oklch(0.28 0.01 280);
+      --muted: oklch(0.33 0.02 280);
+      --muted-foreground: oklch(0.78 0.01 280);
+      --accent: oklch(0.5 0.16 60);
+      --destructive: oklch(0.65 0.25 25);
+      --border: oklch(0.32 0.01 280);
+      
+      /* Dark mode colors - will be applied with .dark class */
+      --dark-background: oklch(0.17 0.01 280);
+      --dark-foreground: oklch(0.95 0.003 280);
+      --dark-blueprint: oklch(0.62 0.18 230);
+      --dark-blueprint-600: oklch(0.52 0.18 230);
+      --dark-card: oklch(0.22 0.01 280);
+      
+      /* Blueprint grid background */
+      --bg-blueprint-grid: 
+        linear-gradient(var(--blueprint-grid) 1px, transparent 1px),
+        linear-gradient(to right, var(--blueprint-grid) 1px, transparent 1px);
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      transition: all 0.3s ease;
+    }
+    
+    body.dark {
+      --background: var(--dark-background);
+      --foreground: var(--dark-foreground);
+      --blueprint: var(--dark-blueprint);
+      --blueprint-600: var(--dark-blueprint-600);
+      --card: var(--dark-card);
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    
+    code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .blueprint-bg {
+      background-color: var(--blueprint);
+    }
+    
+    .blueprint-annotation {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--blueprint-annotation);
+    }
+    
+    .blueprint-paper {
+      background-color: var(--card);
+      background-image: var(--bg-blueprint-grid);
+      background-size: 20px 20px;
+    }
+    
+    .color-swatch {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .color-swatch::after {
+      content: attr(data-color);
+      position: absolute;
+      bottom: -25px;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    .interactive-demo {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 24px 0;
+      background-color: var(--card);
+    }
+    
+    .professor-note {
+      border-left: 4px solid var(--blueprint);
+      padding-left: 16px;
+      font-style: italic;
+      margin: 16px 0;
+      position: relative;
+    }
+    
+    .professor-note::before {
+      content: "🧪 Professor's Note:";
+      font-weight: bold;
+      display: block;
+      margin-bottom: 4px;
+      color: var(--blueprint);
+    }
+    
+    .lesson-section {
+      border-radius: 12px;
+      padding: 24px;
+      margin: 32px 0;
+      background-color: var(--card);
+      border: 1px solid var(--border);
+    }
+    
+    /* Animation for the blueprint pulse effect */
+    @keyframes pulse-gradient {
+      0% { background-color: var(--blueprint); }
+      50% { background-color: var(--blueprint-600); }
+      100% { background-color: var(--blueprint); }
+    }
+    
+    .animate-pulse-blueprint {
+      animation: pulse-gradient 3s infinite;
+    }
+    
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+    }
+    
+    /* Tabs for interactive examples */
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .tab {
+      padding: 8px 16px;
+      background-color: var(--muted);
+      border-radius: 4px 4px 0 0;
+      cursor: pointer;
+      display: inline-block;
+      margin-right: 4px;
+      transition: all 0.2s ease;
+    }
+    
+    .tab.active {
+      background-color: var(--blueprint);
+      color: white;
+    }
+    
+    /* Error visual */
+    .error-message {
+      background-color: rgba(255, 0, 0, 0.1);
+      border: 1px solid var(--destructive);
+      padding: 12px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      margin: 16px 0;
+      position: relative;
+    }
+    
+    .error-message::before {
+      content: "🚨 ERROR";
+      font-weight: bold;
+      color: var(--destructive);
+      display: block;
+      margin-bottom: 8px;
+    }
+    
+    .solution {
+      background-color: rgba(0, 255, 0, 0.05);
+      border: 1px solid #00aa00;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 16px 0;
+    }
+    
+    .solution::before {
+      content: "✅ SOLUTION";
+      font-weight: bold;
+      color: #00aa00;
+      display: block;
+      margin-bottom: 8px;
+    }
+    
+    /* Size display for measurements */
+    .size-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 32px 0;
+    }
+    
+    .size-box {
+      position: relative;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px dashed var(--blueprint-annotation);
+      display: inline-block;
+      margin: 0 16px;
+    }
+    
+    .size-label {
+      position: absolute;
+      bottom: -24px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--blueprint-annotation);
+      font-size: 12px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .quiz-container {
+      margin: 24px 0;
+    }
+    
+    .quiz-question {
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body class="py-8 px-4 md:px-8 lg:px-16 min-h-screen">
+  <!-- Theme Toggle -->
+  <div class="theme-toggle">
+    <button id="themeToggle" class="flex items-center justify-center w-10 h-10 rounded-full bg-card border border-border">
+      <span id="themeIcon">🌙</span>
+    </button>
+  </div>
+  
+  <!-- Header -->
+  <header class="text-center mb-12 mt-8">
+    <div class="animate-pulse-blueprint inline-block px-4 py-2 rounded-md mb-4 text-white">
+      <span class="blueprint-annotation">CONFIDENTIAL: Design System Training</span>
+    </div>
+    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">Design System Bootcamp</h1>
+    <h2 class="text-xl md:text-2xl text-muted-foreground">Surviving the Style Wars: A Field Guide</h2>
+    <p class="mt-6 text-lg max-w-2xl mx-auto">Welcome, brave soul, to the most unnecessarily complicated yet somehow essential part of modern web development: <em>The Design System</em>. Grab a coffee—you'll need it.</p>
+  </header>
+  
+  <!-- Course Introduction -->
+  <div class="max-w-4xl mx-auto">
+    <div class="professor-note">
+      This course assumes you have a sense of humor and the patience of a saint. Those without either quality should probably stick to using Bootstrap templates from 2015. You've been warned.
+    </div>
+    
+    <!-- Lesson 1: CSS Variables -->
+    <section id="lesson1" class="lesson-section blueprint-paper">
+      <h2 class="text-3xl font-bold mb-6">Lesson 1: Colors Are Just Spicy Variables</h2>
+      
+      <p class="mb-4">Once upon a time, we hard-coded hex colors like <code>#FF00FF</code> directly into our CSS like absolute barbarians. We've evolved since then... sort of.</p>
+      
+      <h3 class="text-xl font-semibold mb-4">Meet CSS Variables: The Better Way™</h3>
+      
+      <div class="professor-note">
+        Remember when we'd have to search-and-replace 27 instances of <code>#3366CC</code> when the client said "make the blue more blue-ish"? CSS Variables are how we avoid that particular circle of hell.
+      </div>
+      
+      <div class="my-6">
+        <h4 class="blueprint-annotation mb-2">Our Color System: The Fancy Palette</h4>
+        <div class="flex flex-wrap justify-center">
+          <div class="color-swatch" style="background-color: var(--blueprint);" data-color="blueprint"></div>
+          <div class="color-swatch" style="background-color: var(--blueprint-600);" data-color="blueprint-600"></div>
+          <div class="color-swatch" style="background-color: var(--workshop-wood);" data-color="workshop-wood"></div>
+          <div class="color-swatch" style="background-color: var(--blueprint-annotation);" data-color="annotation"></div>
+        </div>
+      </div>
+      
+      <p class="mt-8 mb-4">Our color system uses the fancy-pants <code>oklch()</code> color space instead of boring old HEX or RGB because we're specifically trying to confuse people who open our code.</p>
+      
+      <div class="interactive-demo">
+        <h4 class="text-lg font-medium mb-4">How It Works: CSS Variable Magic</h4>
+        
+        <div class="tabs">
+          <div class="tab active" data-tab="code">The Code</div>
+          <div class="tab" data-tab="explanation">English, Please</div>
+        </div>
+        
+        <div class="tab-content active" id="code">
+          <pre><code class="language-css">:root {
+  /* Base color definitions */
+  --blueprint: oklch(0.58 0.17 230);
+  --color-blueprint: var(--blueprint);
+  --blueprint-600: oklch(0.48 0.17 230);
+  --color-blueprint-600: var(--blueprint-600);
+}</code></pre>
+        </div>
+        
+        <div class="tab-content" id="explanation">
+          <div class="p-4">
+            <p>1. We define core colors with weird science numbers (<code>oklch</code>)</p>
+            <p>2. Then we create "semantic" variables that reference these colors</p>
+            <p>3. This lets us have both direct colors AND purpose-based colors</p>
+            <p>4. When the theme changes, we only update the core variables</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-6">
+        <button class="px-4 py-2 blueprint-bg rounded-md text-white change-color">Click to Randomize Blueprint Color</button>
+      </div>
+    </section>
+    
+    <!-- Lesson 2: Tailwind Integration -->
+    <section id="lesson2" class="lesson-section">
+      <h2 class="text-3xl font-bold mb-6">Lesson 2: Tailwind + CSS Variables = Complicated Happiness</h2>
+      
+      <p class="mb-4">Tailwind CSS is our way of writing CSS without actually writing CSS, except when we need to write CSS to make Tailwind work the way we want it to work. Simple, right?</p>
+      
+      <div class="professor-note">
+        Tailwind is like that friend who's super helpful but also constantly tells you everything you're doing wrong. We tolerate it because the alternative is worse.
+      </div>
+      
+      <div class="my-6">
+        <h4 class="blueprint-annotation mb-2">How We Connect Tailwind to Our CSS Variables:</h4>
+        
+        <div class="interactive-demo">
+          <pre><code class="language-javascript">// tailwind.config.js
+module.exports = {
+  // ...other config...
+  theme: {
+    extend: {
+      colors: {
+        // The Magic Connection ✨
+        blueprint: {
+          DEFAULT: "var(--color-blueprint)", 
+          600: "var(--color-blueprint-600)"
+        },
+        "blueprint-grid": "var(--color-blueprint-grid)",
+        "workshop-wood": "var(--color-workshop-wood)"
+      }
+    }
+  }
+}</code></pre>
+          <p class="mt-4">This tells Tailwind: "Hey, when someone uses <code>bg-blueprint</code>, use our CSS variable <code>--color-blueprint</code>"</p>
+        </div>
+      </div>
+      
+      <div class="interactive-demo mt-8">
+        <h4 class="text-lg font-medium mb-4">See It In Action:</h4>
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="flex-1">
+            <div class="p-4 rounded-md bg-[var(--blueprint)] text-white">
+              <p>This element uses:</p>
+              <code>bg-[var(--blueprint)]</code>
+            </div>
+          </div>
+          <div class="flex-1">
+            <div class="p-4 rounded-md bg-blueprint text-white">
+              <p>This element uses:</p>
+              <code>bg-blueprint</code>
+            </div>
+          </div>
+        </div>
+        <p class="mt-4 text-sm text-muted-foreground">Spot the difference? There isn't one! The Tailwind class references the same CSS variable.</p>
+      </div>
+    </section>
+    
+    <!-- Lesson 3: The Theme Function Error -->
+    <section id="lesson3" class="lesson-section blueprint-paper">
+      <h2 class="text-3xl font-bold mb-6">Lesson 3: When Theme Functions Attack</h2>
+      
+      <p class="mb-4">Welcome to the special episode where we talk about what happens when developers try to be too clever for their own good.</p>
+      
+      <div class="error-message">
+Could not resolve value for theme function: `theme(colors.blueprint.DEFAULT)`. 
+Consider checking if the path is correct or provide a fallback value to silence this error.</div>
+      
+      <div class="professor-note">
+        Ah, the infamous "theme function error"—responsible for approximately 37% of developer existential crises and 52% of "it works on my machine" excuses.
+      </div>
+      
+      <h3 class="text-xl font-semibold mt-6 mb-4">The Crime Scene:</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="blueprint-annotation mb-2">The Problematic Code:</h4>
+          <pre><code class="language-css">@keyframes pulse-gradient {
+  0% { background-color: theme('colors.blueprint.DEFAULT'); }
+  50% { background-color: theme('colors.blueprint.600'); }
+  100% { background-color: theme('colors.blueprint.DEFAULT'); }
+}</code></pre>
+        </div>
+        
+        <div>
+          <h4 class="blueprint-annotation mb-2">The Missing Config:</h4>
+          <pre><code class="language-javascript">// tailwind.config.js
+colors: {
+  // This doesn't work with theme() function!
+  blueprint: "var(--color-blueprint)",
+  
+  // This is what's needed:
+  blueprint: {
+    DEFAULT: "var(--color-blueprint)",
+    600: "var(--color-blueprint-600)"
+  }
+}</code></pre>
+        </div>
+      </div>
+      
+      <div class="solution mt-6">
+        <h4 class="text-lg font-medium mb-2">Two Ways to Fix This:</h4>
+        
+        <div class="tabs">
+          <div class="tab active" data-tab="fix1">Fix 1: Update Tailwind</div>
+          <div class="tab" data-tab="fix2">Fix 2: Update CSS</div>
+        </div>
+        
+        <div class="tab-content active" id="fix1">
+          <pre><code class="language-javascript">// Define blueprint as an object with shades
+blueprint: {
+  DEFAULT: "var(--color-blueprint)",
+  600: "var(--color-blueprint-600)"
+}</code></pre>
+        </div>
+        
+        <div class="tab-content" id="fix2">
+          <pre><code class="language-css">/* Use CSS variables directly instead */
+@keyframes pulse-gradient {
+  0% { background-color: var(--color-blueprint); }
+  50% { background-color: var(--color-blueprint-600); }
+  100% { background-color: var(--color-blueprint); }
+}</code></pre>
+        </div>
+      </div>
+      
+      <p class="mt-6">We chose to implement <strong>both</strong> fixes, because redundancy is fun, and we enjoy making future developers question our life choices.</p>
+    </section>
+    
+    <!-- Lesson 4: The Component System -->
+    <section id="lesson4" class="lesson-section">
+      <h2 class="text-3xl font-bold mb-6">Lesson 4: Components: Building LEGO Sets with Code</h2>
+      
+      <p class="mb-4">Our components use all these fancy colors and variables to build a cohesive system. It's like LEGO, if LEGO pieces occasionally broke for no reason.</p>
+      
+      <div class="interactive-demo">
+        <h4 class="text-lg font-medium mb-4">Blueprint Annotation: The Design System's Sticky Notes</h4>
+        
+        <div class="blueprint-annotation p-4 border border-[var(--blueprint-annotation)] rounded-md">
+          This is a blueprint annotation - the technical sticky notes of our UI
+        </div>
+        
+        <div class="mt-4">
+          <pre><code class="language-jsx">// Component usage
+&lt;BlueprintAnnotation variant="technical"&gt;
+  This is important technical info
+&lt;/BlueprintAnnotation&gt;</code></pre>
+        </div>
+      </div>
+      
+      <h3 class="text-xl font-semibold mt-8 mb-4">Spacing & Sizing: The Ruler System</h3>
+      
+      <div class="professor-note">
+        We use a sophisticated system of "whatever looks right" for most spacing, then normalize it through CSS variables to pretend it was intentional all along. It's called "design."
+      </div>
+      
+      <div class="size-display">
+        <div class="size-box w-4 h-4">
+          <span class="size-label">sm</span>
+        </div>
+        <div class="size-box w-6 h-6">
+          <span class="size-label">md</span>
+        </div>
+        <div class="size-box w-8 h-8">
+          <span class="size-label">lg</span>
+        </div>
+        <div class="size-box w-12 h-12">
+          <span class="size-label">xl</span>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Final Quiz -->
+    <section id="quiz" class="lesson-section blueprint-paper">
+      <h2 class="text-3xl font-bold mb-6">The "Do You Actually Understand This?" Quiz</h2>
+      
+      <div class="professor-note">
+        This quiz is entirely optional and won't be graded. Just like how using proper design systems is technically "optional" but you'll regret not doing it later.
+      </div>
+      
+      <div class="quiz-container">
+        <div class="quiz-question">
+          <h3 class="text-xl font-medium mb-2">1. Why do we use CSS variables instead of hardcoded colors?</h3>
+          <div class="flex flex-col gap-2">
+            <label class="flex items-center">
+              <input type="radio" name="q1" value="a" class="mr-2">
+              <span>Because typing <code>--color-blueprint</code> requires more keystrokes than <code>#38BDF8</code></span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="q1" value="b" class="mr-2">
+              <span>To enable theme switching and consistent color usage</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="q1" value="c" class="mr-2">
+              <span>To confuse junior developers and assert dominance</span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="quiz-question">
+          <h3 class="text-xl font-medium mb-2">2. Why did our theme function error occur?</h3>
+          <div class="flex flex-col gap-2">
+            <label class="flex items-center">
+              <input type="radio" name="q2" value="a" class="mr-2">
+              <span>Tailwind CSS has become sentient and is refusing our commands</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="q2" value="b" class="mr-2">
+              <span>We defined blueprint as a string but accessed it like an object</span>
+            </label>
+            <label class="flex items-center">
+              <input type="radio" name="q2" value="c" class="mr-2">
+              <span>Mercury is in retrograde and affecting our CSS</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-8 text-center">
+        <button id="checkAnswers" class="px-6 py-3 blueprint-bg rounded-md text-white hover:bg-[var(--blueprint-600)] transition-colors">Check Answers</button>
+        <div id="quizResults" class="mt-4 hidden"></div>
+      </div>
+    </section>
+    
+    <!-- Conclusion -->
+    <section id="conclusion" class="mt-12 text-center">
+      <h2 class="text-2xl font-semibold mb-4">Congratulations, Design System Survivor!</h2>
+      <p class="max-w-2xl mx-auto">You've completed this crash course in our design system architecture. You may not have retained anything, but rest assured that searching the codebase for answers is a time-honored tradition in software development.</p>
+      <div class="mt-6 blueprint-annotation">Document Last Updated: May 15, 2025</div>
+    </section>
+  </div>
+  
+  <!-- Prism JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
+  
+  <!-- Our interactive scripts -->
+  <script>
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Theme toggle functionality
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      
+      if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+          document.body.classList.toggle('dark');
+          themeIcon.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+        });
+      }
+      
+      // Tab switching - Fixed to properly find tab content
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Get the parent .tabs element
+          const tabsContainer = tab.parentElement;
+          
+          // Find all tab-content elements that are siblings of tabs container
+          const tabContentsParent = tabsContainer.parentElement;
+          const tabContents = tabContentsParent.querySelectorAll('.tab-content');
+          
+          // Remove active class from all tabs in this container
+          tabsContainer.querySelectorAll('.tab').forEach(t => {
+            t.classList.remove('active');
+          });
+          
+          // Hide all tab contents in this parent
+          tabContents.forEach(content => {
+            content.classList.remove('active');
+          });
+          
+          // Activate the clicked tab
+          tab.classList.add('active');
+          
+          // Show the corresponding content
+          const tabId = tab.getAttribute('data-tab');
+          const activeContent = tabContentsParent.querySelector(`#${tabId}`);
+          if (activeContent) {
+            activeContent.classList.add('active');
+          }
+        });
+      });
+      
+      // Random color button
+      const colorButton = document.querySelector('.change-color');
+      if (colorButton) {
+        colorButton.addEventListener('click', () => {
+          // Generate a random OKLCH color
+          const l = (Math.random() * 0.4 + 0.4).toFixed(2); // Lightness between 0.4-0.8
+          const c = (Math.random() * 0.2 + 0.1).toFixed(2); // Chroma between 0.1-0.3
+          const h = Math.floor(Math.random() * 360); // Hue 0-360
+          
+          const newColor = `oklch(${l} ${c} ${h})`;
+          document.documentElement.style.setProperty('--blueprint', newColor);
+          
+          // Also set a darker variant for the 600 shade
+          const darkerL = (l - 0.1).toFixed(2);
+          const darkerColor = `oklch(${darkerL} ${c} ${h})`;
+          document.documentElement.style.setProperty('--blueprint-600', darkerColor);
+        });
+      }
+      
+      // Quiz functionality
+      const checkAnswersButton = document.getElementById('checkAnswers');
+      if (checkAnswersButton) {
+        checkAnswersButton.addEventListener('click', () => {
+          const answers = {
+            q1: 'b',
+            q2: 'b'
+          };
+          
+          let correct = 0;
+          let total = Object.keys(answers).length;
+          
+          for (const [question, correctAnswer] of Object.entries(answers)) {
+            const selectedAnswer = document.querySelector(`input[name="${question}"]:checked`)?.value;
+            if (selectedAnswer === correctAnswer) {
+              correct++;
+            }
+          }
+          
+          const resultsDiv = document.getElementById('quizResults');
+          if (resultsDiv) {
+            resultsDiv.innerHTML = `You got ${correct} out of ${total} correct!`;
+            
+            if (correct === total) {
+              resultsDiv.innerHTML += ' <span>🎉 You\'re a design system genius!</span>';
+            } else if (correct > 0) {
+              resultsDiv.innerHTML += ' <span>Not bad! Keep studying.</span>';
+            } else {
+              resultsDiv.innerHTML += ' <span>Well... at least you can use Bootstrap.</span>';
+            }
+            
+            resultsDiv.classList.remove('hidden');
+          }
+        });
+      }
+      
+      // Initialize Prism for code highlighting
+      if (typeof Prism !== 'undefined') {
+        Prism.highlightAll();
+      }
+    });
+  </script>
+</body>
+</html>

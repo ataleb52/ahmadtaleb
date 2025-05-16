@@ -23,6 +23,8 @@
     /* Blueprint blue (accent color) - Made slightly more vibrant */
     --blueprint: oklch(0.58 0.17 230);
     --color-blueprint: var(--blueprint);
+    --blueprint-600: oklch(0.48 0.17 230); /* Darker shade for blueprint */
+    --color-blueprint-600: var(--blueprint-600);
     --blueprint-grid: oklch(0.68 0.12 230 / 0.6);
     --color-blueprint-grid: var(--blueprint-grid);
     --blueprint-annotation: oklch(0.92 0.03 220);
@@ -104,6 +106,7 @@
     
     /* Slightly brighter blueprint blue for dark mode */
     --blueprint: oklch(0.62 0.18 230);
+    --blueprint-600: oklch(0.52 0.18 230); /* Darker shade for blueprint in dark mode */
     --blueprint-grid: oklch(0.72 0.12 230 / 0.6);
     --blueprint-annotation: oklch(0.9 0.03 220);
     
@@ -327,8 +330,8 @@
   }
   
   @keyframes pulse-gradient {
-    0% { background-color: theme('colors.blueprint.DEFAULT'); }
-    50% { background-color: theme('colors.blueprint.600'); }
-    100% { background-color: theme('colors.blueprint.DEFAULT'); }
+    0% { background-color: var(--color-blueprint); }
+    50% { background-color: var(--color-blueprint-600); }
+    100% { background-color: var(--color-blueprint); }
   }
 }

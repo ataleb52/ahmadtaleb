@@ -33,7 +33,10 @@ export default {
         input: "var(--color-input)",
         ring: "var(--color-ring)",
         // Workshop/Blueprint specific colors
-        blueprint: "var(--color-blueprint)",
+        blueprint: {
+          DEFAULT: "var(--color-blueprint)",
+          600: "var(--color-blueprint-600)"
+        },
         "blueprint-grid": "var(--color-blueprint-grid)",
         "blueprint-annotation": "var(--color-blueprint-annotation)",
         "workshop-wood": "var(--color-workshop-wood)",
