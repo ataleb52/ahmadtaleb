@@ -2,247 +2,197 @@ import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { 
-  Lightbulb, 
   Wrench, 
-  CheckCircle, 
-  ChevronRight, 
+  CheckCircle,
   Search,
   X,
   ExternalLink,
-  ChevronDown,
   Calendar,
   Tag,
-  Info,
   ArrowRight,
-  ArrowUpRight,
-  Filter,
-  Layout,
-  Sparkles,
-  Workflow
+  Workflow,
+  ChevronRight,
+  Clock,
+  ListTodo,
+  AlertCircle,
+  Lightbulb,
+  BookOpen,
+  Pin,
+  Eye,
+  Gauge,
+  PenTool,
+  Table,
+  Hammer,
 } from 'lucide-react';
-import { BlueprintAnnotation } from './ui/blueprint-annotation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionTemplate, useMotionValue } from 'framer-motion';
 
-type Problem = {
+type Solution = {
   id: string;
   title: string;
   description: string;
   impact: string;
-  status: 'idea' | 'building' | 'solved';
+  status: 'blueprint' | 'workbench' | 'showcase';
   progress: number; // 0-100
   date?: string;
   tags: string[];
   link?: string;
-  relatedProblems?: string[]; // IDs of related problems
+  relatedSolutions?: string[]; // IDs of related solutions
 }
 
-export function SolutionBlueprint() {
-  const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
+export function SolutionWorkshop() {
+  const [activeSolution, setActiveSolution] = useState<Solution | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(true);
-  const [activeStage, setActiveStage] = useState<'idea' | 'building' | 'solved' | null>(null);
+  const [activeArea, setActiveArea] = useState<'blueprint' | 'workbench' | 'showcase' | null>(null);
+  const [viewMode, setViewMode] = useState<'workshop' | 'list'>('workshop');
+  const [isDragging, setIsDragging] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const workshopRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
   
-  const problems: Problem[] = [
-    // Ideas/Radar problems
+  // Solutions data
+  const solutions: Solution[] = [
+    // Blueprint solutions (Will Tackle)
     {
-      id: 'idea-1',
+      id: 'blueprint-1',
       title: 'Legacy System Dependencies',
       description: 'Organizations stuck with 15+ year old infrastructure that slows innovation',
       impact: 'Will enable faster deployments and reduce maintenance costs by 60%',
-      status: 'idea',
+      status: 'blueprint',
       progress: 0,
       tags: ['Legacy Systems', 'Architecture'],
-      relatedProblems: ['building-2', 'solved-1']
+      relatedSolutions: ['workbench-2', 'showcase-1']
     },
     {
-      id: 'idea-2',
+      id: 'blueprint-2',
       title: 'Customer Behavior Blind Spots',
       description: 'Companies missing key insights into customer decision-making patterns',
       impact: 'Will surface hidden opportunities and reduce customer acquisition costs',
-      status: 'idea',
+      status: 'blueprint',
       progress: 0,
       tags: ['Analytics', 'Customer Experience'],
     },
     
-    // Building/In-progress problems
+    // Workbench solutions (Working On)
     {
-      id: 'building-1',
+      id: 'workbench-1',
       title: 'Portfolio Communication Clarity',
       description: 'Showcasing problem-solving approach in a memorable, effective way',
       impact: 'This very site—creating a system to demonstrate how I think',
-      status: 'building',
+      status: 'workbench',
       progress: 75,
       tags: ['Personal Brand', 'UX Design'],
       link: '#',
-      relatedProblems: ['solved-2']
+      relatedSolutions: ['showcase-2']
     },
     {
-      id: 'building-2',
+      id: 'workbench-2',
       title: 'Cross-Department Data Silos',
       description: 'Isolated systems preventing consolidated business intelligence',
       impact: 'Reducing manual entry by 70% across 5 departments',
-      status: 'building',
+      status: 'workbench',
       progress: 40,
       tags: ['Data Integration', 'Business Intelligence'],
-      relatedProblems: ['idea-1', 'solved-1']
+      relatedSolutions: ['blueprint-1', 'showcase-1']
     },
     
-    // Solved problems
+    // Showcase solutions (Solved)
     {
-      id: 'solved-1',
+      id: 'showcase-1',
       title: 'E-commerce System Fragmentation',
       description: 'Multiple disconnected tools causing order delays and inventory errors',
       impact: 'Reduced operational overhead by 40% and eliminated order delays',
-      status: 'solved',
+      status: 'showcase',
       progress: 100,
       date: 'Q4 2023',
       tags: ['E-commerce', 'Systems Integration'],
       link: '/case-studies/ecommerce',
-      relatedProblems: ['building-2', 'idea-1']
+      relatedSolutions: ['workbench-2', 'blueprint-1']
     },
     {
-      id: 'solved-2',
+      id: 'showcase-2',
       title: 'Manual Fulfillment Bottlenecks',
       description: 'Order processing delays impacting customer satisfaction',
       impact: 'Cut processing time from 3 days to 4 hours',
-      status: 'solved',
+      status: 'showcase',
       progress: 100,
       date: 'Q2 2023',
       tags: ['Operations', 'Workflow Automation'],
       link: '/case-studies/fulfillment',
-      relatedProblems: ['building-1']
+      relatedSolutions: ['workbench-1']
     }
   ];
 
-  // Filter problems based on search and tag
-  const filteredProblems = problems.filter(problem => 
-    (problem.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-     problem.description.toLowerCase().includes(searchQuery.toLowerCase())) &&
-    (!filterTag || problem.tags.includes(filterTag))
+  // Filter solutions based on search and tag
+  const filteredSolutions = solutions.filter(solution => 
+    (solution.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+     solution.description.toLowerCase().includes(searchQuery.toLowerCase())) &&
+    (!filterTag || solution.tags.includes(filterTag)) &&
+    (!activeArea || solution.status === activeArea)
   );
-
-  // Get all unique tags
-  const allTags = Array.from(new Set(problems.flatMap(p => p.tags))).sort();
   
-  // Group problems by status
-  const ideaProblems = filteredProblems.filter(p => p.status === 'idea');
-  const buildingProblems = filteredProblems.filter(p => p.status === 'building');
-  const solvedProblems = filteredProblems.filter(p => p.status === 'solved');
+  // Group solutions by status
+  const blueprintSolutions = filteredSolutions.filter(s => s.status === 'blueprint');
+  const workbenchSolutions = filteredSolutions.filter(s => s.status === 'workbench');
+  const showcaseSolutions = filteredSolutions.filter(s => s.status === 'showcase');
 
-  // Close detail view when clicking outside
-  const detailRef = useRef<HTMLDivElement>(null);
+  // Track mouse position for effects
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (detailRef.current && !detailRef.current.contains(event.target as Node)) {
-        setSelectedProblem(null);
+    function handleMouseMove(e: MouseEvent) {
+      if (workshopRef.current) {
+        const rect = workshopRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        mouseX.set(x);
+        mouseY.set(y);
+        setMousePosition({ x, y });
       }
     }
     
-    if (selectedProblem) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [selectedProblem]);
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [mouseX, mouseY]);
 
-  // Find related problems for the selected problem
-  const getRelatedProblems = (problemId: string) => {
-    const problem = problems.find(p => p.id === problemId);
-    if (!problem?.relatedProblems?.length) return [];
-    return problems.filter(p => problem.relatedProblems?.includes(p.id));
+  // Find related solutions
+  const getRelatedSolutions = (solutionId: string) => {
+    const solution = solutions.find(s => s.id === solutionId);
+    if (!solution?.relatedSolutions?.length) return [];
+    return solutions.filter(s => solution.relatedSolutions?.includes(s.id));
+  };
+
+  // Toggle view mode between workshop and list
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'workshop' ? 'list' : 'workshop');
   };
 
   return (
-    <div className="w-full relative">
-      {/* Simplified onboarding overlay - now more story-driven */}
-      <AnimatePresence>
-        {showOnboarding && (
-          <motion.div 
-            className="absolute inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div 
-              className="bg-card rounded-xl border shadow-xl max-w-lg w-full p-8 relative"
-              initial={{ y: 20, scale: 0.95 }}
-              animate={{ y: 0, scale: 1 }}
-              transition={{ type: 'spring', damping: 20 }}
-            >
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blueprint to-blue-500 flex items-center justify-center shadow-lg shadow-blueprint/20">
-                  <Sparkles className="text-white" size={32} />
-                </div>
-              </div>
-              
-              <h3 className="text-2xl font-heading text-center mb-6 mt-4">How I Solve Problems</h3>
-              
-              <p className="text-center text-muted-foreground mb-8">
-                Take a journey through my problem-solving process — from ideas to finished solutions.
-              </p>
-              
-              <div className="flex flex-col items-center justify-center space-y-3 mb-8">
-                <div className="flex items-center justify-center w-full">
-                  <div className="w-full max-w-[280px] bg-card border border-dashed rounded-xl p-3 flex flex-col items-center">
-                    <div className="mt-2 mb-3 space-y-4 w-full">
-                      {/* The visual journey map */}
-                      <div className="flex items-center justify-between w-full px-4">
-                        <div className="flex flex-col items-center">
-                          <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
-                            <Lightbulb size={18} className="text-amber-500" />
-                          </div>
-                          <span className="text-xs font-medium mt-1">Ideas</span>
-                        </div>
-                        
-                        <div className="w-12 h-0.5 bg-gradient-to-r from-amber-500/50 to-blueprint/50"></div>
-                        
-                        <div className="flex flex-col items-center">
-                          <div className="w-10 h-10 rounded-full bg-blueprint/20 flex items-center justify-center">
-                            <Wrench size={18} className="text-blueprint" />
-                          </div>
-                          <span className="text-xs font-medium mt-1">Building</span>
-                        </div>
-                        
-                        <div className="w-12 h-0.5 bg-gradient-to-r from-blueprint/50 to-emerald-500/50"></div>
-                        
-                        <div className="flex flex-col items-center">
-                          <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                            <CheckCircle size={18} className="text-emerald-500" />
-                          </div>
-                          <span className="text-xs font-medium mt-1">Solved</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <Button 
-                  size="lg"
-                  onClick={() => setShowOnboarding(false)}
-                  className="group relative overflow-hidden"
-                >
-                  <span className="relative z-10">Explore My Solutions</span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-blueprint to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Simplified search and filter bar */}
-      <div className="mb-6 flex flex-wrap gap-3 items-center">
-        <div className="flex-grow max-w-sm">
-          <div className="relative">
+    <div className="w-full space-y-6">
+      {/* Header section with controls */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-heading mb-1 flex items-center gap-2">
+            <span className="text-blueprint">
+              <Hammer className="inline h-6 w-6" />
+            </span>
+            Solution Workshop
+          </h2>
+          <p className="text-muted-foreground">
+            Where I craft solutions to meaningful problems
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {/* Search */}
+          <div className="relative min-w-[240px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search solutions..."
+              placeholder="Find solutions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-blueprint/50"
+              className="w-full pl-9 pr-4 py-2 rounded-lg bg-background border focus:outline-none focus:ring-1 focus:ring-blueprint/50"
             />
             {searchQuery && (
               <button 
@@ -253,553 +203,550 @@ export function SolutionBlueprint() {
               </button>
             )}
           </div>
-        </div>
-        
-        {/* Filter tags dropdown */}
-        <div className="relative ml-auto">
+          
+          {/* View toggle */}
           <Button 
             variant="outline" 
-            size="sm"
-            className="flex items-center gap-1.5"
+            size="sm" 
+            onClick={toggleViewMode}
+            className="h-10"
           >
-            <Tag size={14} />
-            <span>
-              {filterTag ? filterTag : 'All solutions'}
-            </span>
-            <ChevronDown size={14} className="ml-1" />
-          </Button>
-          
-          {/* Show filter indicator */}
-          {filterTag && (
-            <button
-              onClick={() => setFilterTag(null)}
-              className="ml-2 text-xs text-blueprint flex items-center gap-1 hover:underline"
-            >
-              <X size={10} />
-              Clear filter
-            </button>
-          )}
-        </div>
-        
-        {/* Help button */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => setShowOnboarding(true)}
-          className="w-8 h-8 rounded-full"
-          aria-label="How to use this blueprint"
-        >
-          <Info size={16} />
-        </Button>
-      </div>
-      
-      {/* Simplified, story-driven solution journey */}
-      <div className="relative bg-blueprint-grid bg-[length:30px_30px] bg-opacity-[0.02] border rounded-xl p-5 md:p-8 overflow-hidden">
-        {/* Story header with a clear explanation */}
-        <div className="mb-8">
-          <h3 className="text-xl font-heading mb-2">Solution Blueprint</h3>
-          <p className="text-muted-foreground">
-            My approach to solving complex problems, from initial ideas to complete solutions.
-          </p>
-        </div>
-        
-        {/* Visual journey map */}
-        <div className="flex justify-center mb-10">
-          <div className="flex items-center justify-between w-full max-w-2xl">
-            <StageButton 
-              icon={<Lightbulb size={24} />}
-              label="Ideas"
-              color="amber"
-              count={ideaProblems.length}
-              active={activeStage === 'idea'}
-              onClick={() => setActiveStage(activeStage === 'idea' ? null : 'idea')}
-            />
-            
-            <div className="w-full max-w-[100px] h-0.5 bg-gradient-to-r from-amber-500/30 to-blueprint/30"></div>
-            
-            <StageButton 
-              icon={<Wrench size={24} />}
-              label="Building"
-              color="blueprint"
-              count={buildingProblems.length}
-              active={activeStage === 'building'}
-              onClick={() => setActiveStage(activeStage === 'building' ? null : 'building')}
-            />
-            
-            <div className="w-full max-w-[100px] h-0.5 bg-gradient-to-r from-blueprint/30 to-emerald-500/30"></div>
-            
-            <StageButton 
-              icon={<CheckCircle size={24} />}
-              label="Solved"
-              color="emerald"
-              count={solvedProblems.length}
-              active={activeStage === 'solved'}
-              onClick={() => setActiveStage(activeStage === 'solved' ? null : 'solved')}
-            />
-          </div>
-        </div>
-        
-        {/* Problem cards section */}
-        <AnimatePresence mode="wait">
-          {activeStage === null ? (
-            // Show all problems grouped by stage when no stage is selected
-            <motion.div
-              key="all-stages"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
-            >
-              <StageColumn 
-                title="Ideas"
-                icon={<Lightbulb size={18} className="text-amber-500" />}
-                color="amber"
-                problems={ideaProblems}
-                onSelectProblem={setSelectedProblem}
-                emptyStageLine="Problems I'm thinking about"
-              />
-              
-              <StageColumn 
-                title="Building"
-                icon={<Wrench size={18} className="text-blueprint" />}
-                color="blueprint"
-                problems={buildingProblems}
-                onSelectProblem={setSelectedProblem}
-                emptyStageLine="Solutions in progress"
-              />
-              
-              <StageColumn 
-                title="Solved"
-                icon={<CheckCircle size={18} className="text-emerald-500" />}
-                color="emerald"
-                problems={solvedProblems}
-                onSelectProblem={setSelectedProblem}
-                emptyStageLine="Problems I've solved"
-              />
-            </motion.div>
-          ) : (
-            // Show only the selected stage with more details
-            <motion.div
-              key={`stage-${activeStage}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="w-full"
-            >
-              <ExpandedStage 
-                stage={activeStage}
-                problems={
-                  activeStage === 'idea' ? ideaProblems : 
-                  activeStage === 'building' ? buildingProblems : solvedProblems
-                }
-                onSelectProblem={setSelectedProblem}
-                onBack={() => setActiveStage(null)}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      
-        {/* Empty state */}
-        {filteredProblems.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
-            <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mb-4">
-              <Search size={24} className="text-muted-foreground/70" />
-            </div>
-            <p className="mb-2">No solutions match your search</p>
-            <p className="text-sm text-muted-foreground/70">Try adjusting your filters</p>
-            {searchQuery && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="mt-4"
-                onClick={() => setSearchQuery('')}
-              >
-                Clear search
-              </Button>
+            {viewMode === 'workshop' ? (
+              <>
+                <Table size={16} className="mr-2" />
+                List View
+              </>
+            ) : (
+              <>
+                <Hammer size={16} className="mr-2" />
+                Workshop View
+              </>
             )}
-          </div>
-        )}
+          </Button>
+        </div>
       </div>
       
-      {/* Problem detail overlay */}
+      {/* Filter quick-access */}
+      <div className="flex flex-wrap gap-2">
+        <FilterButton
+          label="All Areas"
+          count={solutions.length}
+          active={activeArea === null}
+          onClick={() => setActiveArea(null)}
+        />
+        <FilterButton
+          label="Working On"
+          count={solutions.filter(s => s.status === 'workbench').length}
+          active={activeArea === 'workbench'}
+          color="blueprint"
+          icon={<Wrench size={14} />}
+          onClick={() => setActiveArea(activeArea === 'workbench' ? null : 'workbench')}
+        />
+        <FilterButton
+          label="Will Tackle"
+          count={solutions.filter(s => s.status === 'blueprint').length}
+          active={activeArea === 'blueprint'}
+          color="amber"
+          icon={<PenTool size={14} />}
+          onClick={() => setActiveArea(activeArea === 'blueprint' ? null : 'blueprint')}
+        />
+        <FilterButton
+          label="Solved"
+          count={solutions.filter(s => s.status === 'showcase').length}
+          active={activeArea === 'showcase'}
+          color="emerald"
+          icon={<CheckCircle size={14} />}
+          onClick={() => setActiveArea(activeArea === 'showcase' ? null : 'showcase')}
+        />
+      </div>
+      
+      {/* Empty state */}
+      {filteredSolutions.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            <Search size={24} className="text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">No matching solutions</h3>
+          <p className="text-muted-foreground max-w-md">
+            Try adjusting your search or filter criteria.
+          </p>
+          {(searchQuery || filterTag || activeArea) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-4"
+              onClick={() => {
+                setSearchQuery('');
+                setFilterTag(null);
+                setActiveArea(null);
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
+        </div>
+      )}
+      
+      {/* Main content area - changes based on view mode */}
+      {filteredSolutions.length > 0 && (
+        viewMode === 'workshop' ? (
+          <WorkshopView
+            blueprintSolutions={blueprintSolutions}
+            workbenchSolutions={workbenchSolutions}
+            showcaseSolutions={showcaseSolutions}
+            onSelectSolution={setActiveSolution}
+            mousePosition={mousePosition}
+            ref={workshopRef}
+          />
+        ) : (
+          <ListView
+            solutions={filteredSolutions}
+            onSelectSolution={setActiveSolution}
+          />
+        )
+      )}
+      
+      {/* Solution detail modal */}
       <AnimatePresence>
-        {selectedProblem && (
-          <motion.div 
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+        {activeSolution && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <motion.div 
-              ref={detailRef}
-              className="bg-background rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto"
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
+              className="bg-background border rounded-xl shadow-lg max-w-3xl w-full max-h-[90vh] overflow-auto"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: 'spring', damping: 25 }}
             >
-              <ProblemDetail 
-                problem={selectedProblem} 
-                onClose={() => setSelectedProblem(null)} 
-                relatedProblems={getRelatedProblems(selectedProblem.id)}
-                onSelectRelated={(problem) => setSelectedProblem(problem)}
+              <SolutionDetail 
+                solution={activeSolution}
+                relatedSolutions={getRelatedSolutions(activeSolution.id)}
+                onClose={() => setActiveSolution(null)}
+                onSelectRelated={setActiveSolution}
               />
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
   );
 }
 
-// Button to toggle between stages
-function StageButton({ 
-  icon, 
-  label, 
-  color, 
-  count, 
-  active, 
-  onClick 
-}: { 
-  icon: React.ReactNode; 
-  label: string; 
-  color: 'amber' | 'blueprint' | 'emerald'; 
-  count: number;
-  active: boolean;
-  onClick: () => void;
-}) {
-  const bgColor = {
-    amber: active ? 'bg-amber-500' : 'bg-amber-500/20',
-    blueprint: active ? 'bg-blueprint' : 'bg-blueprint/20',
-    emerald: active ? 'bg-emerald-500' : 'bg-emerald-500/20'
-  }[color];
-  
-  const textColor = {
-    amber: active ? 'text-white' : 'text-amber-500',
-    blueprint: active ? 'text-white' : 'text-blueprint',
-    emerald: active ? 'text-white' : 'text-emerald-500'
-  }[color];
-  
-  const borderColor = {
-    amber: active ? 'border-amber-500' : 'border-transparent',
-    blueprint: active ? 'border-blueprint' : 'border-transparent',
-    emerald: active ? 'border-emerald-500' : 'border-transparent'
-  }[color];
+// Workshop view - immersive experience
+const WorkshopView = React.forwardRef<
+  HTMLDivElement, 
+  { 
+    blueprintSolutions: Solution[], 
+    workbenchSolutions: Solution[],
+    showcaseSolutions: Solution[],
+    onSelectSolution: (solution: Solution) => void,
+    mousePosition: { x: number, y: number }
+  }
+>(({ blueprintSolutions, workbenchSolutions, showcaseSolutions, onSelectSolution, mousePosition }, ref) => {
+  // Use a predefined pattern for the grid lines
+  const blueprintPattern = "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%232563eb' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z'/%3E%3Cpath d='M0 0h20v20H0V0zm21 0h19v19H21V0z'/%3E%3C/g%3E%3C/svg%3E\")";
 
-  return (
-    <motion.button
-      className={cn(
-        "flex flex-col items-center p-3 md:p-4 rounded-xl transition-all border-2",
-        bgColor,
-        textColor,
-        borderColor,
-        "hover:scale-105",
-        active ? "shadow-lg" : ""
-      )}
-      onClick={onClick}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      {icon}
-      <span className="font-medium text-sm mt-1">{label}</span>
-      <span className={cn(
-        "text-xs px-2 py-0.5 rounded-full mt-1",
-        active ? "bg-white/20" : "bg-background"
-      )}>
-        {count}
-      </span>
-    </motion.button>
-  );
-}
-
-// Column for each problem stage
-function StageColumn({ 
-  title,
-  icon,
-  color,
-  problems,
-  onSelectProblem,
-  emptyStageLine
-}: { 
-  title: string;
-  icon: React.ReactNode;
-  color: 'amber' | 'blueprint' | 'emerald';
-  problems: Problem[];
-  onSelectProblem: (problem: Problem) => void;
-  emptyStageLine: string;
-}) {
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2 mb-3">
-        {icon}
-        <h4 className="font-medium">{title}</h4>
-      </div>
-      
-      <div className={cn(
-        "flex-grow bg-card rounded-lg border border-dashed p-3 overflow-y-auto",
-        color === 'amber' ? "border-amber-500/30" :
-        color === 'blueprint' ? "border-blueprint/30" : "border-emerald-500/30"
-      )}>
-        {problems.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-muted-foreground text-center p-4">
-            <p className="text-sm">{emptyStageLine}</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {problems.map(problem => (
-              <SolutionCard 
-                key={problem.id}
-                problem={problem}
-                color={color}
-                onClick={() => onSelectProblem(problem)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Expanded view when a stage is selected
-function ExpandedStage({ 
-  stage,
-  problems,
-  onSelectProblem,
-  onBack
-}: { 
-  stage: 'idea' | 'building' | 'solved';
-  problems: Problem[];
-  onSelectProblem: (problem: Problem) => void;
-  onBack: () => void;
-}) {
-  const stageInfo = {
-    idea: {
-      title: "Ideas & Insights",
-      description: "Problems I've identified that need solutions.",
-      icon: <Lightbulb size={24} className="text-amber-500" />,
-      color: "amber",
-      emptyMessage: "I'm currently exploring new problem spaces."
-    },
-    building: {
-      title: "Currently Building",
-      description: "Solutions I'm actively working on.",
-      icon: <Wrench size={24} className="text-blueprint" />,
-      color: "blueprint",
-      emptyMessage: "No solutions in progress right now."
-    },
-    solved: {
-      title: "Problems Solved",
-      description: "Completed solutions with measurable results.",
-      icon: <CheckCircle size={24} className="text-emerald-500" />,
-      color: "emerald",
-      emptyMessage: "Check back soon for solved problems."
-    }
-  }[stage];
-
-  return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
-        <button 
-          onClick={onBack}
-          className="w-8 h-8 rounded-full bg-background flex items-center justify-center border shadow-sm hover:bg-muted"
-        >
-          <ArrowRight size={16} className="rotate-180" />
-        </button>
-        
-        <div>
-          <div className="flex items-center gap-2">
-            {stageInfo.icon}
-            <h3 className="text-xl font-medium">{stageInfo.title}</h3>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">{stageInfo.description}</p>
-        </div>
-      </div>
-      
-      {problems.length === 0 ? (
-        <div className="flex items-center justify-center h-40 text-muted-foreground bg-card rounded-lg border p-8">
-          <p>{stageInfo.emptyMessage}</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {problems.map(problem => (
-            <DetailedSolutionCard 
-              key={problem.id}
-              problem={problem}
-              color={stageInfo.color as 'amber' | 'blueprint' | 'emerald'}
-              onClick={() => onSelectProblem(problem)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Simple card for the solutions in the stage columns
-function SolutionCard({ 
-  problem, 
-  color,
-  onClick,
-}: { 
-  problem: Problem; 
-  color: 'amber' | 'blueprint' | 'emerald';
-  onClick: () => void;
-}) {
   return (
     <motion.div 
-      className={cn(
-        "border bg-card rounded-md p-3 cursor-pointer hover:shadow-md transition-all",
-        color === 'amber' ? "hover:border-amber-500/40" :
-        color === 'blueprint' ? "hover:border-blueprint/40" : "hover:border-emerald-500/40"
-      )}
+      ref={ref}
+      className="rounded-xl border overflow-hidden relative w-full bg-muted/20 h-[700px]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      {/* Workshop background with ambient lighting */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/80"></div>
+        
+        {/* Dynamic spotlight that follows the cursor */}
+        <div 
+          className="absolute opacity-70 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle 300px at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.05), transparent)`,
+            width: '100%',
+            height: '100%',
+            transition: 'background 0.2s ease'
+          }}
+        ></div>
+      </div>
+      
+      <div className="relative z-10 grid grid-rows-[auto_1fr] h-full">
+        {/* Area labels - top navigation */}
+        <div className="grid grid-cols-3 border-b text-center">
+          <div className="p-3 border-r">
+            <h3 className="font-medium text-amber-500 flex items-center justify-center gap-2">
+              <PenTool size={18} />
+              <span>Blueprints</span>
+            </h3>
+            <p className="text-xs text-muted-foreground">Problems I'll tackle</p>
+          </div>
+          <div className="p-3 border-r bg-blueprint/5">
+            <h3 className="font-medium text-blueprint flex items-center justify-center gap-2">
+              <Wrench size={18} />
+              <span>Workbench</span>
+            </h3>
+            <p className="text-xs text-muted-foreground">Currently crafting</p>
+          </div>
+          <div className="p-3">
+            <h3 className="font-medium text-emerald-500 flex items-center justify-center gap-2">
+              <CheckCircle size={18} />
+              <span>Showcase</span>
+            </h3>
+            <p className="text-xs text-muted-foreground">Finished solutions</p>
+          </div>
+        </div>
+        
+        {/* Workshop areas */}
+        <div className="grid grid-cols-3 h-full overflow-hidden">
+          {/* Blueprint area - draft table with blueprints */}
+          <div className="border-r relative p-4 overflow-y-auto">
+            <div 
+              className="absolute inset-0 opacity-10" 
+              style={{ backgroundImage: blueprintPattern }}
+            ></div>
+            <div className="relative z-10 space-y-3">
+              {blueprintSolutions.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground">No blueprints yet</p>
+                </div>
+              ) : (
+                blueprintSolutions.map(solution => (
+                  <BlueprintItem 
+                    key={solution.id} 
+                    solution={solution} 
+                    onClick={() => onSelectSolution(solution)} 
+                  />
+                ))
+              )}
+            </div>
+          </div>
+          
+          {/* Workbench area - active projects with tools */}
+          <div className="border-r bg-blueprint/5 relative p-4 overflow-y-auto shadow-inner">
+            <div 
+              className="absolute inset-0 bg-center bg-repeat-space opacity-5" 
+              style={{ 
+                backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230f172a' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" 
+              }}
+            ></div>
+            <div className="relative z-10 space-y-3">
+              {workbenchSolutions.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground">Nothing on the workbench</p>
+                </div>
+              ) : (
+                workbenchSolutions.map(solution => (
+                  <WorkbenchItem 
+                    key={solution.id} 
+                    solution={solution} 
+                    onClick={() => onSelectSolution(solution)} 
+                  />
+                ))
+              )}
+            </div>
+          </div>
+          
+          {/* Showcase area - finished projects on display */}
+          <div className="relative p-4 overflow-y-auto">
+            <div 
+              className="absolute inset-0 bg-center bg-repeat opacity-5" 
+              style={{ 
+                backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23047857' fill-opacity='0.15' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E\")" 
+              }}
+            ></div>
+            <div className="relative z-10 space-y-3">
+              {showcaseSolutions.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground">Display case is empty</p>
+                </div>
+              ) : (
+                showcaseSolutions.map(solution => (
+                  <ShowcaseItem 
+                    key={solution.id} 
+                    solution={solution} 
+                    onClick={() => onSelectSolution(solution)} 
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
+// List view - more traditional grid layout
+function ListView({ 
+  solutions, 
+  onSelectSolution 
+}: { 
+  solutions: Solution[],
+  onSelectSolution: (solution: Solution) => void
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {solutions.map(solution => (
+        <SolutionCard 
+          key={solution.id}
+          solution={solution}
+          onClick={() => onSelectSolution(solution)}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Blueprint item - future projects
+function BlueprintItem({ 
+  solution, 
+  onClick 
+}: { 
+  solution: Solution, 
+  onClick: () => void 
+}) {
+  return (
+    <motion.div
       onClick={onClick}
-      whileHover={{ y: -2 }}
+      className="rounded-md border border-amber-500/20 bg-amber-500/5 backdrop-blur-sm p-4 cursor-pointer"
+      whileHover={{ y: -3, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
       whileTap={{ scale: 0.98 }}
     >
-      <h4 className="font-medium text-sm mb-1">{problem.title}</h4>
-      
-      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-        {problem.description}
+      <div className="flex items-start justify-between">
+        <h4 className="font-medium text-sm">{solution.title}</h4>
+        <span className="text-amber-500 flex-shrink-0">
+          <PenTool size={14} />
+        </span>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+        {solution.description}
       </p>
-      
-      {/* Progress bar for building problems */}
-      {color === 'blueprint' && (
-        <div className="h-1 w-full bg-muted rounded-full overflow-hidden mb-2">
-          <motion.div 
-            className="h-full bg-blueprint"
-            style={{ width: `${problem.progress}%` }}
-            initial={{ width: 0 }}
-            animate={{ width: `${problem.progress}%` }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          />
+      <div className="mt-3 flex items-center justify-between">
+        <div className="flex gap-1">
+          {solution.tags.slice(0, 1).map(tag => (
+            <span key={tag} className="text-xs px-1.5 py-0.5 bg-background rounded-sm">
+              {tag}
+            </span>
+          ))}
+          {solution.tags.length > 1 && (
+            <span className="text-xs px-1.5 py-0.5 bg-background rounded-sm">
+              +{solution.tags.length - 1}
+            </span>
+          )}
         </div>
-      )}
-      
-      <div className="flex justify-between items-center">
-        {/* For solved problems, show the date */}
-        {problem.date && (
-          <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-            <Calendar size={10} />
-            {problem.date}
-          </div>
-        )}
-        
-        <div className={cn(
-          "ml-auto text-[10px] flex items-center gap-0.5",
-          color === 'amber' ? "text-amber-500" :
-          color === 'blueprint' ? "text-blueprint" : "text-emerald-500"
-        )}>
-          Details
-          <ChevronRight size={10} />
-        </div>
+        <span className="text-xs text-muted-foreground">Will tackle</span>
       </div>
     </motion.div>
   );
 }
 
-// More detailed card for the expanded stage view
-function DetailedSolutionCard({ 
-  problem, 
-  color,
-  onClick,
+// Workbench item - active projects
+function WorkbenchItem({ 
+  solution, 
+  onClick 
 }: { 
-  problem: Problem; 
-  color: 'amber' | 'blueprint' | 'emerald';
-  onClick: () => void;
+  solution: Solution, 
+  onClick: () => void 
 }) {
-  const gradientBg = {
-    amber: "bg-gradient-to-br from-amber-50 to-transparent",
-    blueprint: "bg-gradient-to-br from-blueprint/5 to-transparent",
-    emerald: "bg-gradient-to-br from-emerald-50 to-transparent"
-  }[color];
+  return (
+    <motion.div
+      onClick={onClick}
+      className="rounded-md border border-blueprint/30 bg-white/5 backdrop-blur-sm p-4 cursor-pointer shadow-sm"
+      whileHover={{ y: -3, boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }}
+      whileTap={{ scale: 0.98 }}
+    >
+      <div className="flex items-start justify-between">
+        <h4 className="font-medium text-sm">{solution.title}</h4>
+        <span className="text-blueprint flex-shrink-0">
+          <Wrench size={14} />
+        </span>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+        {solution.description}
+      </p>
+      
+      {/* Progress indicator */}
+      <div className="mt-3">
+        <div className="flex justify-between items-center mb-1 text-xs">
+          <span>Progress</span>
+          <span className="font-medium">{solution.progress}%</span>
+        </div>
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <motion.div 
+            className="h-full bg-blueprint"
+            initial={{ width: 0 }}
+            animate={{ width: `${solution.progress}%` }}
+            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+          />
+        </div>
+      </div>
+      
+      <div className="mt-3 flex items-center justify-between">
+        <div className="flex gap-1">
+          {solution.tags.slice(0, 1).map(tag => (
+            <span key={tag} className="text-xs px-1.5 py-0.5 bg-background rounded-sm">
+              {tag}
+            </span>
+          ))}
+          {solution.tags.length > 1 && (
+            <span className="text-xs px-1.5 py-0.5 bg-background rounded-sm">
+              +{solution.tags.length - 1}
+            </span>
+          )}
+        </div>
+        <Button variant="ghost" size="sm" className="p-0 h-6">
+          <span className="sr-only">View details</span>
+          <ChevronRight size={14} className="text-muted-foreground" />
+        </Button>
+      </div>
+    </motion.div>
+  );
+}
+
+// Showcase item - completed projects
+function ShowcaseItem({ 
+  solution, 
+  onClick 
+}: { 
+  solution: Solution, 
+  onClick: () => void 
+}) {
+  return (
+    <motion.div
+      onClick={onClick}
+      className="rounded-md border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm p-4 cursor-pointer"
+      whileHover={{ y: -3, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+      whileTap={{ scale: 0.98 }}
+    >
+      <div className="flex items-start justify-between">
+        <h4 className="font-medium text-sm">{solution.title}</h4>
+        <div className="bg-emerald-500/10 text-emerald-500 rounded-full p-0.5 flex-shrink-0">
+          <CheckCircle size={14} />
+        </div>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+        {solution.description}
+      </p>
+      
+      <div className="mt-3 flex items-center justify-between">
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <Calendar size={12} />
+          <span>{solution.date}</span>
+        </div>
+        
+        {solution.link && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="p-0 h-6 text-xs gap-1 text-emerald-600 hover:text-emerald-700"
+          >
+            <span>Case Study</span>
+            <ExternalLink size={10} />
+          </Button>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// Standard solution card for list view
+function SolutionCard({ 
+  solution, 
+  onClick 
+}: { 
+  solution: Solution, 
+  onClick: () => void 
+}) {
+  const statusConfig = {
+    blueprint: {
+      icon: <PenTool size={16} className="text-amber-500" />,
+      label: "Will Tackle",
+      color: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+      border: "hover:border-amber-500/30",
+      bgHover: "hover:bg-amber-500/5"
+    },
+    workbench: {
+      icon: <Wrench size={16} className="text-blueprint" />,
+      label: "Working On",
+      color: "bg-blueprint/10 text-blueprint",
+      border: "hover:border-blueprint/30",
+      bgHover: "hover:bg-blueprint/5"
+    },
+    showcase: {
+      icon: <CheckCircle size={16} className="text-emerald-500" />,
+      label: "Solved",
+      color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+      border: "hover:border-emerald-500/30",
+      bgHover: "hover:bg-emerald-500/5"
+    }
+  };
+
+  const config = statusConfig[solution.status];
 
   return (
-    <motion.div 
-      className={cn(
-        "border bg-card rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all overflow-hidden relative",
-        gradientBg
-      )}
+    <motion.div
       onClick={onClick}
+      className={cn(
+        "rounded-lg border bg-card p-5 cursor-pointer transition-all",
+        config.border,
+        config.bgHover
+      )}
       whileHover={{ y: -3 }}
       whileTap={{ scale: 0.98 }}
     >
-      <div className={cn(
-        "absolute top-0 left-0 w-1 h-full",
-        color === 'amber' ? "bg-amber-500" :
-        color === 'blueprint' ? "bg-blueprint" : "bg-emerald-500"
-      )} />
-      
-      <div className="mb-3">
-        <h4 className="font-medium mb-2">{problem.title}</h4>
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {problem.description}
-        </p>
+      <div className="flex items-center gap-2 mb-3">
+        <span className={cn("flex items-center gap-1.5 px-2 py-1 rounded-full text-xs", config.color)}>
+          {config.icon}
+          <span>{config.label}</span>
+        </span>
       </div>
       
+      <h4 className="font-medium mb-2">{solution.title}</h4>
+      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+        {solution.description}
+      </p>
+      
+      {/* Progress bar for workbench solutions */}
+      {solution.status === 'workbench' && (
+        <div className="mt-2 mb-4">
+          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full bg-blueprint"
+              initial={{ width: 0 }}
+              animate={{ width: `${solution.progress}%` }}
+              transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+            />
+          </div>
+          <div className="flex justify-between mt-1.5">
+            <span className="text-xs text-muted-foreground">In progress</span>
+            <span className="text-xs font-medium">{solution.progress}%</span>
+          </div>
+        </div>
+      )}
+      
       {/* Tags */}
-      <div className="flex flex-wrap gap-1 mb-3">
-        {problem.tags.map(tag => (
+      <div className="flex flex-wrap gap-1 mt-4">
+        {solution.tags.map(tag => (
           <span 
-            key={tag} 
-            className="text-[10px] px-2 py-1 rounded-full bg-muted text-sm"
+            key={tag}
+            className="text-xs px-2 py-0.5 rounded-full bg-muted"
           >
             {tag}
           </span>
         ))}
       </div>
       
-      {/* Progress bar for building problems */}
-      {color === 'blueprint' && (
-        <div className="mb-3">
-          <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-            <motion.div 
-              className="h-full bg-blueprint relative"
-              style={{ width: `${problem.progress}%` }}
-              initial={{ width: 0 }}
-              animate={{ width: `${problem.progress}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-[pulse_2s_ease-in-out_infinite]"></div>
-            </motion.div>
-          </div>
-          <div className="flex justify-between mt-1.5">
-            <span className="text-xs text-muted-foreground">In Progress</span>
-            <span className="text-xs font-medium">{problem.progress}%</span>
-          </div>
-        </div>
-      )}
-      
-      {/* Impact preview */}
-      <div className="text-xs border-t pt-2 mt-2">
-        <span className="text-muted-foreground">Impact: </span>
-        <span className="line-clamp-1">{problem.impact}</span>
-      </div>
-      
-      {/* Footer with date or link */}
-      <div className="flex justify-between items-center mt-3">
-        {problem.date && (
+      {/* Footer with date/impact */}
+      <div className="mt-4 pt-3 border-t flex items-center justify-between">
+        {solution.date ? (
           <div className="text-xs text-muted-foreground flex items-center gap-1">
             <Calendar size={12} />
-            {problem.date}
+            {solution.date}
           </div>
+        ) : (
+          <div></div>
         )}
         
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={cn(
-            "p-0 h-auto text-xs gap-1",
-            color === 'amber' ? "text-amber-500 hover:text-amber-600" :
-            color === 'blueprint' ? "text-blueprint hover:text-blueprint/80" : 
-            "text-emerald-500 hover:text-emerald-600"
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick();
-          }}
-        >
-          View details
+        <Button variant="ghost" size="sm" className="h-8 text-xs gap-1">
+          Details
           <ArrowRight size={12} />
         </Button>
       </div>
@@ -807,52 +754,54 @@ function DetailedSolutionCard({
   );
 }
 
-// Problem detail modal - more story-driven
-function ProblemDetail({ 
-  problem, 
+// Detail view modal
+function SolutionDetail({
+  solution,
+  relatedSolutions = [],
   onClose,
-  relatedProblems = [],
   onSelectRelated
-}: { 
-  problem: Problem; 
+}: {
+  solution: Solution;
+  relatedSolutions: Solution[];
   onClose: () => void;
-  relatedProblems?: Problem[];
-  onSelectRelated: (problem: Problem) => void;
+  onSelectRelated: (solution: Solution) => void;
 }) {
-  const statusInfo = {
-    idea: {
-      icon: <Lightbulb size={18} />,
+  const statusConfig = {
+    blueprint: {
+      icon: <PenTool size={18} />,
+      label: "Will Tackle",
       color: "text-amber-500 bg-amber-500/10",
-      label: "Idea",
-      description: "A problem I've identified that needs a solution."
+      description: "A problem I've identified and plan to solve in the future."
     },
-    building: {
+    workbench: {
       icon: <Wrench size={18} />,
+      label: "Working On",
       color: "text-blueprint bg-blueprint/10",
-      label: "Building",
-      description: "A solution I'm actively developing."
+      description: "A solution I'm actively developing right now."
     },
-    solved: {
+    showcase: {
       icon: <CheckCircle size={18} />,
-      color: "text-emerald-500 bg-emerald-500/10",
       label: "Solved",
+      color: "text-emerald-500 bg-emerald-500/10",
       description: "A completed solution with measurable results."
     }
-  }[problem.status];
+  };
+
+  const config = statusConfig[solution.status];
 
   return (
-    <div>
-      {/* Header with status and close button */}
-      <div className="flex justify-between items-center p-6 border-b">
-        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${statusInfo.color}`}>
-          {statusInfo.icon}
-          <span>{statusInfo.label}</span>
+    <div className="overflow-hidden">
+      {/* Header */}
+      <div className="border-b p-6 flex justify-between items-center">
+        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${config.color}`}>
+          {config.icon}
+          <span className="font-medium">{config.label}</span>
         </div>
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={onClose}
-          aria-label="Close dialog"
+          className="rounded-full"
         >
           <X size={18} />
         </Button>
@@ -860,55 +809,63 @@ function ProblemDetail({
       
       {/* Main content */}
       <div className="p-6">
-        <h2 className="text-2xl font-heading mb-1">{problem.title}</h2>
-        <p className="text-sm text-muted-foreground mb-6">{statusInfo.description}</p>
+        <h2 className="text-2xl font-heading mb-1">{solution.title}</h2>
+        <p className="text-sm text-muted-foreground mb-6">{config.description}</p>
         
-        {/* Problem explanation */}
         <div className="space-y-6">
-          <div className="bg-muted/30 rounded-lg p-4 border">
-            <h3 className="font-medium mb-2">The Problem</h3>
-            <p>{problem.description}</p>
+          {/* Description */}
+          <div className="bg-muted/30 rounded-lg p-5 border">
+            <h3 className="font-medium mb-3 flex items-center gap-2">
+              <AlertCircle size={16} className="text-amber-500" />
+              The Challenge
+            </h3>
+            <p>{solution.description}</p>
           </div>
           
-          <div className="bg-blueprint/5 rounded-lg p-4 border">
-            <h3 className="font-medium mb-2">The Impact</h3>
-            <p>{problem.impact}</p>
+          {/* Impact */}
+          <div className="bg-muted/30 rounded-lg p-5 border">
+            <h3 className="font-medium mb-3 flex items-center gap-2">
+              <Gauge size={16} className="text-emerald-500" />
+              The Impact
+            </h3>
+            <p>{solution.impact}</p>
           </div>
           
-          {/* Progress visualization for in-progress problems */}
-          {problem.status === 'building' && (
-            <div className="mt-6">
-              <h3 className="font-medium mb-3">Current Progress</h3>
-              <div className="bg-card rounded-lg border p-4">
-                <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full bg-blueprint relative"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${problem.progress}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
-                  </motion.div>
-                </div>
-                <div className="flex justify-between mt-2">
-                  <span className="text-sm text-muted-foreground">Status: In progress</span>
-                  <span className="text-sm font-medium">{problem.progress}% complete</span>
-                </div>
+          {/* Progress for in-progress solutions */}
+          {solution.status === 'workbench' && (
+            <div className="bg-muted/30 rounded-lg p-5 border">
+              <h3 className="font-medium mb-3 flex items-center gap-2">
+                <Hammer size={16} className="text-blueprint" />
+                Current Progress
+              </h3>
+              
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden mb-3">
+                <motion.div 
+                  className="h-full bg-blueprint"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${solution.progress}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                />
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-sm text-muted-foreground">In progress</span>
+                <span className="text-sm font-medium">{solution.progress}% complete</span>
               </div>
             </div>
           )}
         </div>
         
-        {/* Additional details section */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Tags and metadata */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Tags */}
           <div>
-            <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5">
+            <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5 text-muted-foreground">
               <Tag size={14} />
-              Related Categories
+              Categories
             </h3>
             <div className="flex flex-wrap gap-1.5">
-              {problem.tags.map(tag => (
+              {solution.tags.map(tag => (
                 <span 
                   key={tag}
                   className="px-2.5 py-1 rounded-full bg-muted text-sm"
@@ -919,42 +876,41 @@ function ProblemDetail({
             </div>
           </div>
           
-          {/* Date or completion */}
-          <div>
-            {problem.date && (
-              <div>
-                <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5">
-                  <Calendar size={14} />
-                  {problem.status === 'solved' ? 'Completed' : 'Timeframe'}
-                </h3>
-                <p className="text-sm">{problem.date}</p>
-              </div>
-            )}
-          </div>
+          {/* Date/Timeline */}
+          {solution.date && (
+            <div>
+              <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5 text-muted-foreground">
+                <Calendar size={14} />
+                {solution.status === 'showcase' ? 'Completed' : 'Timeline'}
+              </h3>
+              <p className="text-sm bg-muted px-3 py-1.5 inline-block rounded-full">{solution.date}</p>
+            </div>
+          )}
         </div>
         
-        {/* Related problems */}
-        {relatedProblems.length > 0 && (
+        {/* Related solutions */}
+        {relatedSolutions.length > 0 && (
           <div className="mt-8">
             <h3 className="font-medium mb-3 flex items-center gap-1.5">
-              <Workflow size={16} />
+              <Workflow size={16} className="text-muted-foreground" />
               Connected Solutions
             </h3>
+            
             <div className="space-y-2">
-              {relatedProblems.map(related => (
-                <motion.button
+              {relatedSolutions.map(related => (
+                <button
                   key={related.id}
-                  className="w-full flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/30 transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-3 border rounded-lg bg-card hover:bg-muted/50 transition-colors text-left"
                   onClick={() => onSelectRelated(related)}
-                  whileHover={{ x: 3 }}
                 >
                   <div className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                    related.status === 'idea' ? "bg-amber-500/20" :
-                    related.status === 'building' ? "bg-blueprint/20" : "bg-emerald-500/20"
+                    related.status === 'blueprint' ? "bg-amber-500/20" : 
+                    related.status === 'workbench' ? "bg-blueprint/20" : 
+                    "bg-emerald-500/20"
                   )}>
-                    {related.status === 'idea' ? <Lightbulb size={16} className="text-amber-500" /> :
-                     related.status === 'building' ? <Wrench size={16} className="text-blueprint" /> : 
+                    {related.status === 'blueprint' ? <PenTool size={16} className="text-amber-500" /> : 
+                     related.status === 'workbench' ? <Wrench size={16} className="text-blueprint" /> : 
                      <CheckCircle size={16} className="text-emerald-500" />}
                   </div>
                   <div className="flex-grow min-w-0">
@@ -962,18 +918,18 @@ function ProblemDetail({
                     <p className="text-xs text-muted-foreground truncate">{related.description}</p>
                   </div>
                   <ChevronRight size={16} className="text-muted-foreground" />
-                </motion.button>
+                </button>
               ))}
             </div>
           </div>
         )}
       </div>
       
-      {/* Footer with action button */}
+      {/* Footer with action buttons */}
       <div className="p-6 border-t flex justify-end">
-        {problem.link ? (
+        {solution.link ? (
           <Button 
-            onClick={() => window.open(problem.link, '_blank')} 
+            onClick={() => window.open(solution.link, '_blank')}
             className="gap-1.5"
           >
             <span>View Case Study</span>
@@ -992,27 +948,55 @@ function ProblemDetail({
   );
 }
 
-// Simple icons for view toggle
-function GridIcon(props: any) {
+// Filter button component
+function FilterButton({
+  label,
+  count,
+  active = false,
+  color = "default",
+  icon,
+  onClick
+}: {
+  label: string;
+  count: number;
+  active?: boolean;
+  color?: "default" | "amber" | "blueprint" | "emerald";
+  icon?: React.ReactNode;
+  onClick: () => void;
+}) {
+  const baseClasses = "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all";
+  
+  const colorClasses = {
+    default: active 
+      ? "bg-primary text-primary-foreground" 
+      : "bg-muted hover:bg-muted/80 text-muted-foreground",
+    amber: active 
+      ? "bg-amber-500 text-white" 
+      : "bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400",
+    blueprint: active 
+      ? "bg-blueprint text-white" 
+      : "bg-blueprint/10 hover:bg-blueprint/20 text-blueprint",
+    emerald: active 
+      ? "bg-emerald-500 text-white" 
+      : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400"
+  };
+
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <rect x="3" y="3" width="7" height="7" />
-      <rect x="14" y="3" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" />
-    </svg>
+    <button
+      onClick={onClick}
+      className={`${baseClasses} ${colorClasses[color]}`}
+    >
+      {icon && <span className="opacity-80">{icon}</span>}
+      <span>{label}</span>
+      <span className={cn(
+        "inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-xs font-medium",
+        active ? "bg-white/20" : "bg-background"
+      )}>
+        {count}
+      </span>
+    </button>
   );
 }
 
-function ListIcon(props: any) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <line x1="8" y1="6" x2="21" y2="6" />
-      <line x1="8" y1="12" x2="21" y2="12" />
-      <line x1="8" y1="18" x2="21" y2="18" />
-      <line x1="3" y1="6" x2="3.01" y2="6" />
-      <line x1="3" y1="12" x2="3.01" y2="12" />
-      <line x1="3" y1="18" x2="3.01" y2="18" />
-    </svg>
-  );
-}
+// Export for use in page
+export const SolutionBlueprint = SolutionWorkshop;
