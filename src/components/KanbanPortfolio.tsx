@@ -11,8 +11,16 @@ import {
   ExternalLink,
   ChevronDown,
   Calendar,
-  Tag
+  Tag,
+  Info,
+  ArrowRight,
+  ArrowUpRight,
+  Filter,
+  Layout,
+  Sparkles,
+  Workflow
 } from 'lucide-react';
+import { BlueprintAnnotation } from './ui/blueprint-annotation';
 
 type Problem = {
   id: string;
@@ -24,13 +32,17 @@ type Problem = {
   date?: string;
   tags: string[];
   link?: string;
+  relatedProblems?: string[]; // IDs of related problems
 }
 
 export function SolutionBlueprint() {
-  const [activeView, setActiveView] = useState<'grid' | 'list'>('grid');
+  const [activeView, setActiveView] = useState<'journey' | 'grid' | 'list'>('journey');
   const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [highlightedStage, setHighlightedStage] = useState<'idea' | 'building' | 'solved' | null>(null);
+  const [showConnections, setShowConnections] = useState(false);
   
   const problems: Problem[] = [
     // Ideas/Radar problems
@@ -42,6 +54,7 @@ export function SolutionBlueprint() {
       status: 'idea',
       progress: 0,
       tags: ['Legacy Systems', 'Architecture'],
+      relatedProblems: ['building-2', 'solved-1']
     },
     {
       id: 'idea-2',
@@ -62,7 +75,8 @@ export function SolutionBlueprint() {
       status: 'building',
       progress: 75,
       tags: ['Personal Brand', 'UX Design'],
-      link: '#'
+      link: '#',
+      relatedProblems: ['solved-2']
     },
     {
       id: 'building-2',
@@ -72,6 +86,7 @@ export function SolutionBlueprint() {
       status: 'building',
       progress: 40,
       tags: ['Data Integration', 'Business Intelligence'],
+      relatedProblems: ['idea-1', 'solved-1']
     },
     
     // Solved problems
@@ -84,7 +99,8 @@ export function SolutionBlueprint() {
       progress: 100,
       date: 'Q4 2023',
       tags: ['E-commerce', 'Systems Integration'],
-      link: '/case-studies/ecommerce'
+      link: '/case-studies/ecommerce',
+      relatedProblems: ['building-2', 'idea-1']
     },
     {
       id: 'solved-2',
@@ -95,7 +111,8 @@ export function SolutionBlueprint() {
       progress: 100,
       date: 'Q2 2023',
       tags: ['Operations', 'Workflow Automation'],
-      link: '/case-studies/fulfillment'
+      link: '/case-studies/fulfillment',
+      relatedProblems: ['building-1']
     }
   ];
 
@@ -129,10 +146,86 @@ export function SolutionBlueprint() {
     }
   }, [selectedProblem]);
 
+  // Find related problems for the selected problem
+  const getRelatedProblems = (problemId: string) => {
+    const problem = problems.find(p => p.id === problemId);
+    if (!problem?.relatedProblems?.length) return [];
+    return problems.filter(p => problem.relatedProblems?.includes(p.id));
+  };
+
+  // Onboarding component for first-time visitors
+  const Onboarding = () => (
+    <div className="absolute inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+      <div className="bg-card rounded-xl border shadow-lg max-w-lg w-full p-6 relative">
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2">
+          <div className="w-12 h-12 rounded-full bg-blueprint flex items-center justify-center shadow-lg">
+            <Sparkles className="text-white" size={24} />
+          </div>
+        </div>
+        
+        <h3 className="text-xl font-heading mb-4">Welcome to My Solution Blueprint</h3>
+        <p className="mb-6 text-muted-foreground">
+          This is where I showcase my problem-solving approach. Explore how I identify challenges, 
+          build solutions, and drive real impact.
+        </p>
+        
+        <div className="space-y-3 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+              <Lightbulb size={16} className="text-amber-500" />
+            </div>
+            <div>
+              <h4 className="font-medium text-sm">Ideas</h4>
+              <p className="text-xs text-muted-foreground">Problems I've identified that need solving</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <ArrowRight size={12} className="text-muted-foreground ml-4" />
+          </div>
+          
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-blueprint/20 flex items-center justify-center flex-shrink-0">
+              <Wrench size={16} className="text-blueprint" />
+            </div>
+            <div>
+              <h4 className="font-medium text-sm">Building</h4>
+              <p className="text-xs text-muted-foreground">Solutions currently in development</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <ArrowRight size={12} className="text-muted-foreground ml-4" />
+          </div>
+          
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+              <CheckCircle size={16} className="text-emerald-500" />
+            </div>
+            <div>
+              <h4 className="font-medium text-sm">Solved</h4>
+              <p className="text-xs text-muted-foreground">Completed solutions with measurable results</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex justify-end">
+          <Button onClick={() => setShowOnboarding(false)}>
+            Explore Solutions
+            <ArrowRight size={14} className="ml-2" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full relative">
-      {/* Search and filtering */}
-      <div className="mb-6 flex flex-wrap gap-3 items-center md:flex-row flex-col sm:items-start">
+      {/* Onboarding overlay */}
+      {showOnboarding && <Onboarding />}
+
+      {/* Controls bar */}
+      <div className="mb-6 flex flex-wrap gap-3 items-center">
         <div className="relative flex-grow max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
@@ -154,40 +247,66 @@ export function SolutionBlueprint() {
         
         <ViewToggle activeView={activeView} setActiveView={setActiveView} />
         
-        <div className="flex flex-wrap gap-2 ml-auto">
-          {allTags.slice(0, activeView === 'grid' ? 3 : 5).map(tag => (
-            <button
-              key={tag}
-              onClick={() => setFilterTag(filterTag === tag ? null : tag)}
-              className={cn(
-                "px-2 py-1 rounded-full text-xs transition-all duration-200 flex items-center gap-1",
-                filterTag === tag 
-                  ? "bg-blueprint text-white shadow-sm" 
-                  : "bg-muted hover:bg-muted/60"
-              )}
-            >
-              {filterTag === tag && (
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-in fade-in zoom-in duration-200"></span>
-              )}
-              {tag}
-            </button>
-          ))}
+        {/* Tag filter button with dropdown */}
+        <div className="relative ml-auto">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {}}
+            className="flex items-center gap-1.5"
+          >
+            <Filter size={14} />
+            <span>
+              {filterTag ? `Tag: ${filterTag}` : 'Filter by Tag'}
+            </span>
+            {filterTag && (
+              <div 
+                className="ml-1 rounded-full w-4 h-4 flex items-center justify-center bg-muted hover:bg-muted/80"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFilterTag(null);
+                }}
+              >
+                <X size={10} />
+              </div>
+            )}
+          </Button>
           
-          {allTags.length > (activeView === 'grid' ? 3 : 5) && (
-            <button
-              onClick={() => {}} // Open a full tag filter menu
-              className="px-2 py-1 rounded-full text-xs bg-muted hover:bg-muted/60"
-            >
-              +{allTags.length - (activeView === 'grid' ? 3 : 5)} more
-            </button>
+          {/* Show selected filter tag with clear option */}
+          {filterTag && (
+            <BlueprintAnnotation variant="note" size="xs" className="ml-2 animate-in fade-in duration-300">
+              Showing only {filterTag} problems
+            </BlueprintAnnotation>
           )}
         </div>
+        
+        {/* Help button */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setShowOnboarding(true)}
+          className="w-8 h-8 rounded-full"
+          title="How to use this blueprint"
+        >
+          <Info size={16} />
+        </Button>
       </div>
       
       {/* Main content */}
       <div className="relative">
-        {/* Problem grid/list view */}
-        {activeView === 'grid' ? (
+        {/* Problem views */}
+        {activeView === 'journey' ? (
+          <JourneyView 
+            ideaProblems={ideaProblems}
+            buildingProblems={buildingProblems}
+            solvedProblems={solvedProblems}
+            onSelectProblem={setSelectedProblem}
+            highlightedStage={highlightedStage}
+            setHighlightedStage={setHighlightedStage}
+            showConnections={showConnections}
+            setShowConnections={setShowConnections}
+          />
+        ) : activeView === 'grid' ? (
           <GridView 
             ideaProblems={ideaProblems}
             buildingProblems={buildingProblems}
@@ -210,7 +329,12 @@ export function SolutionBlueprint() {
               ref={detailRef}
               className="bg-background rounded-xl shadow-lg max-w-2xl w-full max-h-[90vh] overflow-auto animate-in fade-in zoom-in-95 duration-200"
             >
-              <ProblemDetail problem={selectedProblem} onClose={() => setSelectedProblem(null)} />
+              <ProblemDetail 
+                problem={selectedProblem} 
+                onClose={() => setSelectedProblem(null)} 
+                relatedProblems={getRelatedProblems(selectedProblem.id)}
+                onSelectRelated={(problem) => setSelectedProblem(problem)}
+              />
             </div>
           </div>
         )}
@@ -223,22 +347,34 @@ function ViewToggle({
   activeView, 
   setActiveView 
 }: { 
-  activeView: 'grid' | 'list';
-  setActiveView: (view: 'grid' | 'list') => void;
+  activeView: 'journey' | 'grid' | 'list';
+  setActiveView: (view: 'journey' | 'grid' | 'list') => void;
 }) {
   return (
     <div className="flex rounded-md overflow-hidden border">
       <button
-        onClick={() => setActiveView('grid')}
+        onClick={() => setActiveView('journey')}
         className={cn(
           "px-3 py-1.5 flex items-center gap-1.5 text-sm",
+          activeView === 'journey' 
+            ? "bg-blueprint text-white" 
+            : "hover:bg-muted"
+        )}
+      >
+        <Workflow size={14} />
+        <span className="hidden sm:inline">Journey</span>
+      </button>
+      <button
+        onClick={() => setActiveView('grid')}
+        className={cn(
+          "px-3 py-1.5 flex items-center gap-1.5 text-sm border-l",
           activeView === 'grid' 
             ? "bg-blueprint text-white" 
             : "hover:bg-muted"
         )}
       >
-        <GridIcon size={14} />
-        <span className="hidden sm:inline">Blueprint</span>
+        <Layout size={14} />
+        <span className="hidden sm:inline">Grid</span>
       </button>
       <button
         onClick={() => setActiveView('list')}
@@ -252,6 +388,341 @@ function ViewToggle({
         <ListIcon size={14} />
         <span className="hidden sm:inline">List</span>
       </button>
+    </div>
+  );
+}
+
+function JourneyView({ 
+  ideaProblems,
+  buildingProblems,
+  solvedProblems,
+  onSelectProblem,
+  highlightedStage,
+  setHighlightedStage,
+  showConnections,
+  setShowConnections
+}: {
+  ideaProblems: Problem[];
+  buildingProblems: Problem[];
+  solvedProblems: Problem[];
+  onSelectProblem: (problem: Problem) => void;
+  highlightedStage: 'idea' | 'building' | 'solved' | null;
+  setHighlightedStage: (stage: 'idea' | 'building' | 'solved' | null) => void;
+  showConnections: boolean;
+  setShowConnections: (show: boolean) => void;
+}) {
+  const hasProblems = ideaProblems.length > 0 || buildingProblems.length > 0 || solvedProblems.length > 0;
+
+  return (
+    <div className="relative">
+      {/* Journey header with stage names and connection toggle */}
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium text-sm">Solution Journey</h3>
+          {hasProblems && (
+            <button 
+              onClick={() => setShowConnections(!showConnections)}
+              className={cn(
+                "text-xs px-2 py-0.5 rounded-full",
+                showConnections 
+                  ? "bg-blueprint/20 text-blueprint" 
+                  : "bg-muted text-muted-foreground hover:bg-muted/70"
+              )}
+            >
+              {showConnections ? 'Hide' : 'Show'} connections
+            </button>
+          )}
+        </div>
+        
+        <BlueprintAnnotation variant="witty" size="xs">
+          // from problem to solution
+        </BlueprintAnnotation>
+      </div>
+      
+      {/* Visual timeline journey */}
+      <div className="relative bg-blueprint-grid bg-[length:20px_20px] bg-opacity-[0.03] border rounded-xl p-6 overflow-hidden">
+        {/* Empty state */}
+        {!hasProblems && (
+          <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
+            <div className="mb-4">
+              <div className="w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mx-auto">
+                <Search size={24} className="text-muted-foreground/70" />
+              </div>
+            </div>
+            <p className="mb-2">No problems match your search criteria</p>
+            <p className="text-sm text-muted-foreground/70">Try adjusting your filters</p>
+          </div>
+        )}
+        
+        {hasProblems && (
+          <div className="flex flex-col md:flex-row md:h-[450px] gap-4 md:gap-0">
+            {/* Ideas stage */}
+            <div 
+              className={cn(
+                "md:w-1/3 p-4 flex flex-col relative transition-all duration-300",
+                highlightedStage === 'idea' || highlightedStage === null 
+                  ? "opacity-100 scale-100" 
+                  : "opacity-70 scale-[0.98]"
+              )}
+              onMouseEnter={() => setHighlightedStage('idea')}
+              onMouseLeave={() => setHighlightedStage(null)}
+            >
+              {/* Stage header */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Lightbulb size={16} className="text-amber-500" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Ideas</h4>
+                  <div className="text-xs text-muted-foreground">
+                    {ideaProblems.length} problems
+                  </div>
+                </div>
+              </div>
+              
+              {/* Content - scrollable if needed */}
+              <div className="flex-grow overflow-auto pr-1 space-y-3">
+                {ideaProblems.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                    No ideas yet
+                  </div>
+                ) : (
+                  ideaProblems.map(problem => (
+                    <JourneyCard 
+                      key={problem.id} 
+                      problem={problem} 
+                      onClick={() => onSelectProblem(problem)}
+                      showConnections={showConnections}
+                    />
+                  ))
+                )}
+              </div>
+              
+              {/* Connection line to next stage - only on wider screens */}
+              <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-0">
+                <div className="w-6 border-t-2 border-dashed border-blueprint/30 h-px"></div>
+              </div>
+            </div>
+            
+            {/* Building stage */}
+            <div 
+              className={cn(
+                "md:w-1/3 p-4 flex flex-col relative transition-all duration-300",
+                highlightedStage === 'building' || highlightedStage === null 
+                  ? "opacity-100 scale-100"
+                  : "opacity-70 scale-[0.98]"
+              )}
+              onMouseEnter={() => setHighlightedStage('building')}
+              onMouseLeave={() => setHighlightedStage(null)}
+            >
+              {/* Connection lines - mobile only */}
+              <div className="flex md:hidden justify-center mb-2">
+                <div className="h-6 border-l-2 border-dashed border-blueprint/30 w-px"></div>
+              </div>
+              
+              {/* Stage header */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-full bg-blueprint/20 flex items-center justify-center">
+                  <Wrench size={16} className="text-blueprint" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Building</h4>
+                  <div className="text-xs text-muted-foreground">
+                    {buildingProblems.length} in progress
+                  </div>
+                </div>
+              </div>
+              
+              {/* Content - scrollable if needed */}
+              <div className="flex-grow overflow-auto pr-1 space-y-3">
+                {buildingProblems.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                    Nothing in progress
+                  </div>
+                ) : (
+                  buildingProblems.map(problem => (
+                    <JourneyCard 
+                      key={problem.id} 
+                      problem={problem} 
+                      onClick={() => onSelectProblem(problem)}
+                      showConnections={showConnections}
+                    />
+                  ))
+                )}
+              </div>
+              
+              {/* Connection lines */}
+              <div className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 z-0">
+                <div className="w-4 border-t-2 border-dashed border-blueprint/30 h-px"></div>
+              </div>
+              <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 z-0">
+                <div className="w-6 border-t-2 border-dashed border-blueprint/30 h-px"></div>
+              </div>
+            </div>
+            
+            {/* Solved stage */}
+            <div 
+              className={cn(
+                "md:w-1/3 p-4 flex flex-col relative transition-all duration-300",
+                highlightedStage === 'solved' || highlightedStage === null 
+                  ? "opacity-100 scale-100" 
+                  : "opacity-70 scale-[0.98]"
+              )}
+              onMouseEnter={() => setHighlightedStage('solved')}
+              onMouseLeave={() => setHighlightedStage(null)}
+            >
+              {/* Connection lines - mobile only */}
+              <div className="flex md:hidden justify-center mb-2">
+                <div className="h-6 border-l-2 border-dashed border-blueprint/30 w-px"></div>
+              </div>
+              
+              {/* Stage header */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                  <CheckCircle size={16} className="text-emerald-500" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-sm">Solved</h4>
+                  <div className="text-xs text-muted-foreground">
+                    {solvedProblems.length} completed
+                  </div>
+                </div>
+              </div>
+              
+              {/* Content - scrollable if needed */}
+              <div className="flex-grow overflow-auto pr-1 space-y-3">
+                {solvedProblems.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                    No solved problems yet
+                  </div>
+                ) : (
+                  solvedProblems.map(problem => (
+                    <JourneyCard 
+                      key={problem.id} 
+                      problem={problem} 
+                      onClick={() => onSelectProblem(problem)}
+                      showConnections={showConnections}
+                    />
+                  ))
+                )}
+              </div>
+              
+              {/* Connection line from previous stage - only on wider screens */}
+              <div className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 z-0">
+                <div className="w-4 border-t-2 border-dashed border-blueprint/30 h-px"></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function JourneyCard({ 
+  problem, 
+  onClick,
+  showConnections = false 
+}: { 
+  problem: Problem; 
+  onClick: () => void;
+  showConnections?: boolean;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Different card styles based on status
+  const cardStyles = {
+    idea: "border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/10",
+    building: "border-blueprint/40 bg-blueprint/5 hover:bg-blueprint/10",
+    solved: "border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10"
+  };
+
+  return (
+    <div 
+      className={cn(
+        "border rounded-md p-3 cursor-pointer transition-all duration-300 relative",
+        cardStyles[problem.status],
+        isHovered ? "shadow-md translate-y-[-2px]" : ""
+      )}
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Status indicator */}
+      <div className="flex items-center justify-between mb-2">
+        <StatusBadge status={problem.status} />
+        
+        {/* Connection indicator */}
+        {showConnections && problem.relatedProblems && problem.relatedProblems.length > 0 && (
+          <div className="px-1.5 py-0.5 rounded-full bg-muted text-[10px] text-muted-foreground flex items-center gap-1">
+            <div className="w-1 h-1 rounded-full bg-blueprint"></div>
+            <span>{problem.relatedProblems.length} connected</span>
+          </div>
+        )}
+      </div>
+      
+      {/* Title */}
+      <h4 className="font-medium text-sm mb-1">{problem.title}</h4>
+      
+      {/* Description - truncated */}
+      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+        {problem.description}
+      </p>
+      
+      {/* Progress bar for building problems */}
+      {problem.status === 'building' && (
+        <div className="mt-2 mb-2">
+          <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-blueprint relative origin-left"
+              style={{ width: `${problem.progress}%` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+            </div>
+          </div>
+          <div className="flex justify-end mt-1">
+            <span className="text-[10px] text-muted-foreground">{problem.progress}%</span>
+          </div>
+        </div>
+      )}
+      
+      {/* Footer with date or "View details" */}
+      <div className="flex items-center justify-between">
+        {problem.date ? (
+          <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <Calendar size={10} />
+            {problem.date}
+          </div>
+        ) : (
+          <div></div>
+        )}
+        
+        <div className={cn(
+          "text-[10px] flex items-center gap-0.5 transition-all",
+          problem.status === 'idea' ? "text-amber-500" : 
+          problem.status === 'building' ? "text-blueprint" : "text-emerald-500"
+        )}>
+          <span className={cn(
+            "transition-all",
+            isHovered ? "translate-x-[-2px]" : ""
+          )}>
+            View
+          </span>
+          <ArrowUpRight size={10} className={cn(
+            "transition-all",
+            isHovered ? "translate-x-[1px] translate-y-[-1px]" : ""
+          )} />
+        </div>
+      </div>
+      
+      {/* Glowing border effect on hover */}
+      {isHovered && (
+        <div className={cn(
+          "absolute inset-0 rounded-md pointer-events-none",
+          problem.status === 'idea' ? "shadow-glow-amber" : 
+          problem.status === 'building' ? "shadow-glow-blueprint" : "shadow-glow-emerald"
+        )}></div>
+      )}
     </div>
   );
 }
@@ -403,7 +874,7 @@ function Blueprint3DCard({
   return (
     <div 
       className={cn(
-        "border rounded-lg bg-card transition-all cursor-pointer overflow-hidden",
+        "border rounded-lg bg-card transition-all cursor-pointer overflow-hidden group",
         problem.status === 'building' ? "border-l-2 border-l-blueprint" : "",
         featured 
           ? "shadow-lg hover:shadow-xl ring-1 ring-blueprint/20 hover:ring-blueprint/30" 
@@ -416,7 +887,7 @@ function Blueprint3DCard({
         transition: 'transform 0.3s ease, box-shadow 0.3s ease',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'perspective(1000px) rotateX(2deg) translateY(-4px)';
+        e.currentTarget.style.transform = 'perspective(1000px) rotateX(0deg) translateY(-4px)';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'perspective(1000px) rotateX(2deg)';
@@ -479,9 +950,9 @@ function Blueprint3DCard({
             </div>
           )}
           
-          <div className="text-[10px] text-blueprint flex items-center gap-0.5">
+          <div className="text-[10px] text-blueprint flex items-center gap-0.5 transition-all group-hover:translate-x-0.5">
             View details
-            <ChevronRight size={12} />
+            <ChevronRight size={12} className="transition-transform group-hover:translate-x-0.5" />
           </div>
         </div>
       </div>
@@ -647,8 +1118,15 @@ function ListItemCard({
         </div>
       )}
       
+      {/* Related problems indicator */}
+      {problem.relatedProblems && problem.relatedProblems.length > 0 && (
+        <div className="ml-2 px-1.5 py-0.5 rounded-full bg-muted/80 text-[10px] text-muted-foreground">
+          {problem.relatedProblems.length} related
+        </div>
+      )}
+      
       {/* View button */}
-      <Button variant="ghost" size="sm" className="ml-4">
+      <Button variant="ghost" size="sm" className="ml-2">
         <ChevronRight size={16} />
       </Button>
     </div>
@@ -657,10 +1135,14 @@ function ListItemCard({
 
 function ProblemDetail({ 
   problem, 
-  onClose 
+  onClose,
+  relatedProblems = [],
+  onSelectRelated
 }: { 
   problem: Problem; 
   onClose: () => void;
+  relatedProblems?: Problem[];
+  onSelectRelated: (problem: Problem) => void;
 }) {
   return (
     <div>
@@ -738,6 +1220,29 @@ function ProblemDetail({
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Calendar size={14} />
                 {problem.status === 'solved' ? `Solved in ${problem.date}` : problem.date}
+              </div>
+            </div>
+          )}
+          
+          {/* Related problems */}
+          {relatedProblems.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-1">
+                <Workflow size={14} />
+                Related Problems
+              </h3>
+              <div className="space-y-2 mt-2">
+                {relatedProblems.map(related => (
+                  <div 
+                    key={related.id}
+                    className="flex items-center gap-2 p-2 border border-dashed border-muted rounded hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => onSelectRelated(related)}
+                  >
+                    <StatusBadge status={related.status} />
+                    <span className="text-sm font-medium">{related.title}</span>
+                    <ChevronRight size={14} className="ml-auto text-muted-foreground" />
+                  </div>
+                ))}
               </div>
             </div>
           )}
