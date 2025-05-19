@@ -179,16 +179,6 @@ export function HeroSection() {
               )}>
                 {/* Innovative header */}
                 <div className="flex items-center justify-between mb-8 text-left border-b pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blueprint/10 flex items-center justify-center">
-                      <Pencil size={20} className="text-blueprint" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-medium">Solution Blueprint</h2>
-                      <p className="text-sm text-muted-foreground">See what I've solved, what I'm building, and what's next</p>
-                    </div>
-                  </div>
-                  
                   <BlueprintAnnotation variant="witty">
                     // this is how I think
                   </BlueprintAnnotation>
