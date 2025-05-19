@@ -3,7 +3,6 @@ import { Container } from './ui/container';
 import { cn } from '@/lib/utils';
 import { BlueprintAnnotation } from './ui/blueprint-annotation';
 import { Button } from './ui/button';
-import { CurrentSolvingPill } from './CurrentProblemTrackers';
 import { SolutionBlueprint } from './KanbanPortfolio';
 import { Pencil } from 'lucide-react';
 
@@ -55,7 +54,7 @@ export function HeroSection({ headerVisible = false }) {
   // Integrated messages array with system init as first message and system ready as last
   const loadingMessages = [
     "// system init: personal introduction",
-    "Initializing caffeine levels...",
+    "Making ...",
     "Calibrating problem-solving algorithms...",
     "Loading unnecessarily clever metaphors...",
     "// system ready"
@@ -101,14 +100,14 @@ export function HeroSection({ headerVisible = false }) {
                }}>
                
             <div className="relative">
-              {/* Blueprint annotations section */}
+              {/* Blueprint annotations section - ensure left alignment */}
               <div 
                 className={cn(
-                  "transition-all duration-500",
+                  "transition-all duration-500 text-left", // Added text-left here
                   showAnnotations ? "opacity-100 mb-8 md:mb-10" : "opacity-0 mb-0"
                 )}
                 style={{
-                  height: showAnnotations ? "4rem" : "0", // Height transition
+                  height: showAnnotations ? "4rem" : "0",
                   overflow: "hidden",
                   position: showAnnotations ? "relative" : "absolute",
                   top: 0,
@@ -118,13 +117,13 @@ export function HeroSection({ headerVisible = false }) {
               >
                 <BlueprintAnnotation 
                   variant="witty"
-                  className="transition-all duration-500 mb-3"
+                  className="transition-all duration-500 mb-3 text-left" // Added text-left here
                 >
                   {loadingMessages[loadingStage]}
                 </BlueprintAnnotation>
                 
-                {/* Loading indicators */}
-                <div className="flex gap-2">
+                {/* Loading indicators - left aligned */}
+                <div className="flex gap-2 justify-start"> {/* Added justify-start */}
                   {Array.from({ length: loadingMessages.length }).map((_, i) => (
                     <span 
                       key={i} 
@@ -144,35 +143,143 @@ export function HeroSection({ headerVisible = false }) {
                 "transition-all duration-700",
                 showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               )}>
-                {/* Current solving pill - appears at the top of content */}
-                <div className="mb-8 md:mb-12 flex justify-start md:justify-center">
-                  <CurrentSolvingPill />
-                </div>
-                
-                {/* Main headline */}
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-medium mb-6 md:mb-8 tracking-tight">
-                  <span className="block mb-3">My name is Ahmad.</span>
+                {/* Main headline - remove md:text-center to keep left alignment on all screens */}
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-medium mb-6 md:mb-8 tracking-tight text-left">
+                  <span className="block mb-3">My name is Ahmad Taleb.</span>
                   <span className="block text-blueprint">I solve problems.</span>
                 </h1>
                 
-                {/* Subheading */}
-                <p className="text-lg md:text-xl lg:text-2xl mb-8 md:mb-12 leading-relaxed">
+                {/* Subheading with increased font size and reduced bottom margin */}
+                <p className="text-xl md:text-2xl lg:text-3xl mb-4 md:mb-6 leading-relaxed text-left">
                   The kind that get in the way of letting people and businesses become more independent.
                 </p>
                 
-                {/* Blueprint marker - adjust for responsive alignment */}
-                <div className="blueprint-marker w-24 h-1 bg-blueprint mb-12 md:mb-16 rounded-full 
-                                opacity-80 relative overflow-hidden md:mx-auto">
+                {/* Blueprint marker with reduced bottom margin */}
+                <div className="blueprint-marker w-24 h-1 bg-blueprint mb-6 md:mb-8 rounded-full 
+                                opacity-80 relative overflow-hidden">
                   <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
                 </div>
+
+                {/* Product Management Board - Command Line Style */}
+                <div className="w-full mb-12 md:mb-16">
+                  {/* Navigation hint banner - terminal style */}
+                  <div className="bg-gray-900 border border-blueprint/20 text-gray-400 mb-4 py-2 px-4 rounded-md flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
+                  </svg>
+                  <span className="font-mono">$ find -name "section" -type directory</span>
+                  </div>
+
+                  {/* Terminal-style navigation grid */}
+                  <div className="bg-gray-900 rounded-lg shadow-xl overflow-hidden border border-blueprint/20">
+                  {/* Terminal header */}
+                  <div className="bg-gray-800 px-4 py-2 flex items-center border-b border-gray-700">
+                    <div className="flex space-x-2 mr-4">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <div className="text-gray-400 text-sm font-mono">ahmad@taleb:~/sections</div>
+                  </div>
+                  
+                  {/* Terminal content */}
+                  <div className="p-4 font-mono text-sm">
+                    <div className="flex items-start mb-3">
+                    <span className="text-blue-400 mr-2">$</span>
+                    <span className="text-green-400">ls -la --format=detailed</span>
+                    </div>
+                    
+                    {/* Grid of terminal-style section items */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pl-4">
+                    {/* About Me */}
+                    <a href="#about" className="group relative bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-gray-600 hover:bg-gray-800/50 transition-all cursor-pointer overflow-hidden">
+                      <div className="flex items-center">
+                      <span className="text-yellow-300 font-medium">aboutme/</span>
+                      <span className="absolute top-2 right-2 text-gray-500 text-xs opacity-60">01</span>
+                      </div>
+                      <p className="text-gray-400 text-xs mt-2 text-left">My background, experience, and approach to solving problems.</p>
+                      <div className="mt-3 text-blue-400 text-xs flex items-center text-left">
+                      <span>$ cd aboutme</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1 transform group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                      </div>
+                    </a>
+                    
+                    {/* What I Do */}
+                    <a href="#services" className="group relative bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-gray-600 hover:bg-gray-800/50 transition-all cursor-pointer overflow-hidden">
+                      <div className="flex items-center">
+                      <span className="text-yellow-300 font-medium">services/</span>
+                      <span className="absolute top-2 right-2 text-gray-500 text-xs opacity-60">02</span>
+                      </div>
+                      <p className="text-gray-400 text-xs mt-2 text-left">Product strategy, roadmapping, and helping businesses become more independent.</p>
+                      <div className="mt-3 text-blue-400 text-xs flex items-center text-left">
+                      <span>$ cd services</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1 transform group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                      </div>
+                    </a>
+                    
+                    {/* Current Projects */}
+                    <a href="#projects" className="group relative bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-gray-600 hover:bg-gray-800/50 transition-all cursor-pointer overflow-hidden">
+                      <div className="flex items-center">
+                      <span className="text-yellow-300 font-medium">projects/</span>
+                      <span className="absolute top-2 right-2 text-gray-500 text-xs opacity-60">03</span>
+                      </div>
+                      <p className="text-gray-400 text-xs mt-2 text-left">See what I'm working on now, including my home buying platform.</p>
+                      
+                      <div className="mt-1 text-gray-400 text-xs text-left">
+                      <div className="flex items-center justify-between">
+                        <span>homebuy.platform</span>
+                        <span className="text-amber-400">65%</span>
+                      </div>
+                      <div className="w-full bg-gray-800 h-1 rounded-full overflow-hidden mt-1">
+                        <div className="bg-amber-500 h-full rounded-full" style={{width: '65%'}}></div>
+                      </div>
+                      </div>
+                      
+                      <div className="mt-2 text-blue-400 text-xs flex items-center text-left">
+                      <span>$ cd projects</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1 transform group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                      </div>
+                    </a>
+                    
+                    {/* Contact - special emphasis */}
+                    <a href="#contact" className="group relative bg-gray-900/50 rounded-lg p-4 border border-gray-700 hover:border-green-800/40 hover:bg-gray-800/50 transition-all cursor-pointer overflow-hidden">
+                      <div className="flex items-center">
+                      <span className="text-yellow-300 font-medium">contact.sh*</span>
+                      <span className="absolute top-2 right-2 text-gray-500 text-xs opacity-60">04</span>
+                      </div>
+                      <p className="text-gray-400 text-xs mt-2 text-left">Let's discuss your business challenges and how I can help you solve them.</p>
+                      
+                      <div className="mt-3">
+                      <button className="w-full bg-gray-800 hover:bg-gray-700 text-green-400 py-1 px-2 rounded-sm text-xs font-mono border border-gray-700 flex items-center justify-center text-left">
+                        <span className="text-blue-400 mr-1">$</span>
+                        ./contact.sh --execute
+                      </button>
+                      </div>
+                    </a>
+                    </div>
+                  </div>
+                  </div>
+                </div>
                 
-                {/* Action buttons */}
-                <div className="flex flex-wrap gap-4 mb-12 md:mb-16 md:justify-center">
+                {/* Action buttons - updated with the requested link names */}
+                <div className="flex flex-wrap gap-4 mb-12 md:mb-16">
                   <Button size="lg" variant="default">
-                    View My Work
+                    Who am I
+                  </Button>
+                  <Button size="lg" variant="default">
+                    What I do
+                  </Button>
+                  <Button size="lg" variant="default">
+                    What I'm working on
                   </Button>
                   <Button size="lg" variant="outline">
-                    Get In Touch
+                    Get in Touch
                   </Button>
                 </div>
                 
