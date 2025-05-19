@@ -59,7 +59,8 @@ export function MainLayout() {
       </button>
 
       <main>
-        <Outlet />
+        {/* Pass the header visibility state to the Outlet context */}
+        <Outlet context={{ headerVisible: showHeader }} />
       </main>
     </div>
   );
