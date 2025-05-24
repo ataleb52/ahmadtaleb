@@ -10,7 +10,7 @@ Not the kind you diagram on a whiteboard and forget. The kind that make people q
 
 I'm the one they call when your dev team is stuck in sprint hell, your execs are still "aligning on vision," and your data team is buried under a mountain of backlog. I cut through that mess.
 
-I've been a product manager, a founder, a consultant, a translator, a systems analyst, and the guy who rebuilt his family business's operations from scratch—because nobody else would. My resume doesn't look like a straight line. It looks like real life.
+I've been a product manager, a founder, a consultant, a translator, a systems analyst, data scientist...I can wear a lot of hats.s My resume doesn't look like a straight line. It looks like real life.
 
 I don't do corporate theater. I don't need 6 weeks to "scope" a strategy deck. I work fast, ask the hard questions, and build solutions that make the noise go away. Whether it's a scrappy prototype or an org-wide strategy, I bring order to chaos—without pretending it's easy.
 
