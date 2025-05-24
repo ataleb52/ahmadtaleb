@@ -3,6 +3,7 @@ import { HeroSection } from '@/components/HeroSection';
 import { SolutionBlueprintSection } from '@/components/SolutionBlueprintSection';
 import { ScrollNavbar } from '@/components/ScrollNavbar';
 import { AboutMeSection } from '@/components/AboutMeSection';
+import { StartupAboutSection } from '@/components/StartupAboutSection';
 
 export default function HomePage() {
   const [heroAnimationsComplete, setHeroAnimationsComplete] = useState(false);
@@ -65,6 +66,10 @@ export default function HomePage() {
         <div className="container mx-auto">
           <h2 className="text-4xl font-bold text-yellow-300 mb-8">Who am I</h2>
           <AboutMeSection />
+        </div>
+        <div className="container mx-auto">
+          <h2 className="text-4xl font-bold text-yellow-300 mb-8">Startup</h2>
+          <StartupAboutSection />
         </div>
       </section>
       
