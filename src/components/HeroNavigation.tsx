@@ -3,10 +3,19 @@ import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { Pencil } from 'lucide-react';
 
+export interface HeroNavigationProps {
+  isVisible?: boolean;
+  delay?: number;
+  isTerminalBioVisible?: boolean; // Add this prop
+  onNavLinkClick?: (href: string) => void; // Add this prop
+}
+
 export function HeroNavigation({ 
   isVisible = false,
-  delay = 0 // Delay in ms before starting animation
-}) {
+  delay = 0, // Delay in ms before starting animation
+  isTerminalBioVisible = false, // Add default
+  onNavLinkClick = () => {} // Add default
+}: HeroNavigationProps) {
   const [showNavigation, setShowNavigation] = useState(false);
   
   useEffect(() => {
@@ -22,15 +31,22 @@ export function HeroNavigation({
   
   return (
     <div className={cn(
+      "w-full", // Ensure the component tries to fill its container's width
       "transition-all duration-700",
-      showNavigation ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      showNavigation ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
+      isTerminalBioVisible ? "animate-slide-out-left" : "animate-slide-in-left" // Conditional animation
     )}>
       {/* Simplified Navigation Cards */}
       <div className="w-full mb-12 md:mb-16">
         {/* Grid of terminal-style section cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* About Me */}
-          <a href="#about" className="group relative bg-gray-900/70 rounded-lg p-4 border border-gray-700 hover:border-blueprint/30 hover:bg-gray-800/70 transition-all cursor-pointer overflow-hidden shadow-md">
+          <a href="#about" 
+             onClick={(e) => {
+               e.preventDefault();
+               if (onNavLinkClick) onNavLinkClick("#about");
+             }}
+             className="group relative bg-gray-900/70 rounded-lg p-4 border border-gray-700 hover:border-blueprint/30 hover:bg-gray-800/70 transition-all cursor-pointer overflow-hidden shadow-md">
             <div className="flex items-center justify-between mb-3">
               <span className="text-yellow-300 font-medium">Who am I</span>
               <span className="text-gray-500 text-xs opacity-60">01</span>
@@ -39,7 +55,12 @@ export function HeroNavigation({
           </a>
           
           {/* What I Do */}
-          <a href="#services" className="group relative bg-gray-900/70 rounded-lg p-4 border border-gray-700 hover:border-blueprint/30 hover:bg-gray-800/70 transition-all cursor-pointer overflow-hidden shadow-md">
+          <a href="#products" 
+             onClick={(e) => {
+               e.preventDefault();
+               if (onNavLinkClick) onNavLinkClick("#products");
+             }}
+             className="group relative bg-gray-900/70 rounded-lg p-4 border border-gray-700 hover:border-blueprint/30 hover:bg-gray-800/70 transition-all cursor-pointer overflow-hidden shadow-md">
             <div className="flex items-center justify-between mb-3">
               <span className="text-yellow-300 font-medium">What I do</span>
               <span className="text-gray-500 text-xs opacity-60">02</span>
@@ -48,7 +69,12 @@ export function HeroNavigation({
           </a>
           
           {/* Current Projects */}
-          <a href="#projects" className="group relative bg-gray-900/70 rounded-lg p-4 border border-gray-700 hover:border-blueprint/30 hover:bg-gray-800/70 transition-all cursor-pointer overflow-hidden shadow-md">
+          <a href="#projects" 
+             onClick={(e) => {
+               e.preventDefault();
+               if (onNavLinkClick) onNavLinkClick("#projects");
+             }}
+             className="group relative bg-gray-900/70 rounded-lg p-4 border border-gray-700 hover:border-blueprint/30 hover:bg-gray-800/70 transition-all cursor-pointer overflow-hidden shadow-md">
             <div className="flex items-center justify-between mb-3">
               <span className="text-yellow-300 font-medium">What I'm working on</span>
               <span className="text-gray-500 text-xs opacity-60">03</span>
@@ -67,7 +93,12 @@ export function HeroNavigation({
           </a>
           
           {/* Contact - special emphasis */}
-          <a href="#contact" className="group relative bg-gray-900/70 rounded-lg p-4 border border-gray-700 hover:border-blueprint/30 hover:bg-gray-800/70 transition-all cursor-pointer overflow-hidden shadow-md">
+          <a href="#contact" 
+             onClick={(e) => {
+               e.preventDefault();
+               if (onNavLinkClick) onNavLinkClick("#contact");
+             }}
+             className="group relative bg-gray-900/70 rounded-lg p-4 border border-gray-700 hover:border-blueprint/30 hover:bg-gray-800/70 transition-all cursor-pointer overflow-hidden shadow-md">
             <div className="flex items-center justify-between mb-3">
               <span className="text-yellow-300 font-medium">Contact</span>
               <span className="text-gray-500 text-xs opacity-60">04</span>

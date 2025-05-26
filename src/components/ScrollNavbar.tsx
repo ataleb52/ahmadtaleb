@@ -55,7 +55,7 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
               href={link.href} 
               onClick={(e) => {
                 e.preventDefault();
-                onLinkClick(link.href.substring(1));
+                onLinkClick(link.href); // Pass the full href
               }}
               className="group relative bg-gray-900/70 rounded-lg p-3 border border-gray-700 hover:border-blueprint/30 hover:bg-gray-800/70 transition-all cursor-pointer overflow-hidden shadow-md"
             >
@@ -99,10 +99,10 @@ export const ScrollNavbar: React.FC<ScrollNavbarProps> = ({
                   href={link.href}
                   onClick={(e) => {
                     e.preventDefault();
-                    onLinkClick(link.href.substring(1));
-                    setMobileMenuOpen(false);
+                    onLinkClick(link.href); // Pass the full href
+                    setMobileMenuOpen(false); // Close menu on click
                   }}
-                  className="flex items-center justify-between w-full bg-gray-900/70 rounded-md p-3 border border-gray-700 text-left transition-all"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-yellow-300 transition-colors"
                   initial={{ x: -20 }}
                   animate={{ x: 0 }}
                   transition={{ delay: index * 0.1 }}

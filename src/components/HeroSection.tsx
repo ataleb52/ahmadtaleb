@@ -3,11 +3,21 @@ import { Container } from './ui/container';
 import { cn } from '@/lib/utils';
 import { BlueprintAnnotation } from './ui/blueprint-annotation';
 import { HeroNavigation } from './HeroNavigation';
+import { TerminalBioSection } from './TerminalBioSection'; // Import TerminalBioSection
+
+export interface HeroSectionProps {
+  headerVisible?: boolean;
+  onAnimationComplete?: () => void;
+  isTerminalBioVisible?: boolean; // Add this prop
+  onNavLinkClick?: (href: string) => void; // Add this prop
+}
 
 export function HeroSection({ 
   headerVisible = false,
-  onAnimationComplete = () => {} // Add callback prop
-}) {
+  onAnimationComplete = () => {},
+  isTerminalBioVisible = false, // Add default value
+  onNavLinkClick = () => {} // Add default value
+}: HeroSectionProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
   const [showContent, setShowContent] = useState(false);
@@ -149,27 +159,49 @@ export function HeroSection({
                 {/* Main headline */}
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-medium mb-6 md:mb-8 tracking-tight text-left">
                   <span className="block mb-3">My name is Ahmad Taleb.</span>
-                  <span className="block text-blueprint">I solve problems.</span>
                 </h1>
                 
                 {/* Subheading with increased font size and reduced bottom margin */}
                 <p className="text-xl md:text-2xl lg:text-3xl mb-4 md:mb-6 leading-relaxed text-left">
-                  The kind that get in the way of letting people and businesses become more independent.
+                    <span 
+                    className="block text-blueprint relative group cursor-help border-l-2 border-blueprint/60 pl-3 transition-all duration-300 hover:border-l-4 hover:text-white hover:bg-blueprint/10 hover:pl-4"
+                    >
+                    I solve problems using software, data analysis, and product management principles for people, organizations, and businesses that want solutions with <span className="font-bold relative inline-block"></span>
+                        <span className="font-semibold relative inline-block text-red-500 dark:text-red-400 transform hover:rotate-1 hover:scale-105 transition-all">independence</span> <span className="font-semibold relative inline-block text-red-500 dark:text-red-400 transform hover:rotate-1 hover:scale-105 transition-all">built</span> <span className="font-semibold relative inline-block text-red-500 dark:text-red-400 transform hover:rotate-1 hover:scale-105 transition-all">by</span> <span className="font-semibold relative inline-block text-red-500 dark:text-red-400 transform hover:rotate-1 hover:scale-105 transition-all">DESIGN</span>.
+                        {/* Tooltip positioned below the phrase instead of above */}
+                        <span className="absolute opacity-0 group-hover:opacity-100 bg-gray-900/95 text-white text-sm rounded pointer-events-none z-10 transition-opacity duration-300 border border-blueprint/30 shadow-lg p-3 w-[300px] left-1/2 -translate-x-1/2 top-full mt-2">
+                          "Independence built by design" means I don't just solve the problem — I help you own the solution.
+                        </span>
+                    </span>
+
                 </p>
+
                 
                 {/* Blueprint marker with reduced bottom margin */}
-                <div className="blueprint-marker w-24 h-1 bg-blueprint mb-6 md:mb-8 rounded-full 
-                                opacity-80 relative overflow-hidden">
+                <div className="blueprint-marker w-24 h-1 bg-blueprint mb-4 md:mb-6 lg:mb-8 rounded-full 
+                        opacity-80 relative overflow-hidden">
                   <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
                 </div>
 
-                {/* Add the Navigation component with a delay */}
-                <HeroNavigation 
-                  isVisible={showContent} 
-                  delay={500} // Delay navigation appearance by 500ms after content shows
-                />
+                {/* Container for HeroNavigation and TerminalBioSection */}
+                <div className="relative w-full min-h-[260px] md:min-h-[200px]"> 
+                  {/* Adjust min-h based on HeroNavigation's typical height */}
+                  <HeroNavigation 
+                    isVisible={showContent && !isTerminalBioVisible}
+                    delay={500} 
+                    isTerminalBioVisible={isTerminalBioVisible}
+                    onNavLinkClick={onNavLinkClick}
+                  />
+                  
+                  {isTerminalBioVisible && (
+                    <TerminalBioSection 
+                      isVisible={isTerminalBioVisible}
+                      onClose={() => onNavLinkClick('')} // Or a specific href that means close
+                      className="absolute top-0 left-0 w-full h-full" // Position to overlay
+                    />
+                  )}
+                </div>
                 
-                {/* Solution Blueprint Section is removed */}
               </div>
             </div>
           </div>
