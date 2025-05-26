@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Container } from './ui/container';
 import { cn } from '@/lib/utils';
 import { BlueprintAnnotation } from './ui/blueprint-annotation';
@@ -22,6 +22,7 @@ export function HeroSection({
   const [loadingStage, setLoadingStage] = useState(0);
   const [showContent, setShowContent] = useState(false);
   const [showAnnotations, setShowAnnotations] = useState(true);
+  const terminalBioRef = useRef<HTMLDivElement>(null);
   
   // Define loadingMessages BEFORE the useEffect that uses it
   const loadingMessages = [
@@ -70,6 +71,22 @@ export function HeroSection({
       clearTimeout(timer);
     };
   }, [loadingMessages.length, onAnimationComplete]);
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isTerminalBioVisible && terminalBioRef.current && !terminalBioRef.current.contains(event.target as Node)) {
+        onNavLinkClick(''); // Close the terminal bio
+      }
+    };
+
+    if (isTerminalBioVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isTerminalBioVisible, onNavLinkClick]);
   
   return (
     <>
@@ -195,6 +212,7 @@ export function HeroSection({
                   
                   {isTerminalBioVisible && (
                     <TerminalBioSection 
+                      ref={terminalBioRef} // Pass the ref here
                       isVisible={isTerminalBioVisible}
                       onClose={() => onNavLinkClick('')} // Or a specific href that means close
                       className="absolute top-0 left-0 w-full h-full" // Position to overlay

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface TerminalBioSectionProps {
@@ -28,11 +28,11 @@ The three things I do best:
 
 I believe the best solutions leave people better off — not just with something that works, but with something they own.`;
 
-export const TerminalBioSection: React.FC<TerminalBioSectionProps> = ({ 
+export const TerminalBioSection = forwardRef<HTMLDivElement, TerminalBioSectionProps>(({ 
   isVisible, 
   onClose,
   className 
-}) => {
+}, ref) => {
   const [shouldRender, setShouldRender] = useState(isVisible);
   const [animationClass, setAnimationClass] = useState('');
 
@@ -81,6 +81,7 @@ export const TerminalBioSection: React.FC<TerminalBioSectionProps> = ({
     // It will be positioned by its parent in HeroSection.
     // The animation class controls its slide in/out.
     <div 
+      ref={ref} // Attach the ref here
       className={cn(
         baseCardClasses,
         heightClasses,
@@ -92,7 +93,10 @@ export const TerminalBioSection: React.FC<TerminalBioSectionProps> = ({
       // onClick={(e) => e.stopPropagation()} // Stop propagation if needed, but maybe not for a card
     >
       <button
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent click on close button from being treated as "click outside"
+          onClose();
+        }}
         className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xl leading-none z-10"
         aria-label="Close"
       >
@@ -131,4 +135,6 @@ export const TerminalBioSection: React.FC<TerminalBioSectionProps> = ({
       </div>
     </div>
   );
-};
+});
+
+TerminalBioSection.displayName = 'TerminalBioSection';
