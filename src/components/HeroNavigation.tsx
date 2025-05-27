@@ -106,7 +106,7 @@ export function HeroNavigation({
       <BottomSheet 
         isOpen={isBioPanelOpen}
         onClose={() => setIsBioPanelOpen(false)}
-        className="bg-gray-800 w-full md:max-w-3xl md:mx-auto"
+        className="bg-gray-800"
         showCloseButton={false}
       >
         {/* Terminal-style header */}
@@ -129,9 +129,7 @@ export function HeroNavigation({
         </div>
 
         {/* Terminal Content Body */}
-        <div className="px-0 pb-0">
-          <BioDisplay />
-        </div>
+        <BioDisplay />
       </BottomSheet>
     </div> 
   );

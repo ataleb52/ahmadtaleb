@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import React from "react";
+import { createPortal } from "react-dom";
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ export function BottomSheet({
   showCloseButton = true,
   closeOnBackdropClick = true,
 }: BottomSheetProps) {
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -39,7 +40,7 @@ export function BottomSheet({
           <motion.div
             className={cn(
               "fixed left-0 right-0 bottom-0 z-50 bg-background rounded-t-2xl",
-              "shadow-2xl border-t border-border",
+              "shadow-2xl border-t border-border w-full min-w-[100vw]",
               className
             )}
             initial={{ y: "100%" }}
@@ -70,10 +71,11 @@ export function BottomSheet({
             )}
 
             {/* Content */}
-            <div className="px-4 pb-8">{children}</div>
+            <div>{children}</div>
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

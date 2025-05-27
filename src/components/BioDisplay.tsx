@@ -21,7 +21,7 @@ export function BioDisplay() {
   ];
 
   return (
-    <div className="p-4 font-mono text-sm overflow-y-auto max-h-[60vh]">
+    <div className="font-mono text-sm overflow-y-auto max-h-[60vh] px-6 pb-8">
       {bioContent.map((item, index) => (
         <motion.div
           key={index}
