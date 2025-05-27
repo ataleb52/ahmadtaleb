@@ -40,7 +40,7 @@ export function BottomSheet({
           <motion.div
             className={cn(
               "fixed left-0 right-0 bottom-0 z-50 bg-background rounded-t-2xl",
-              "shadow-2xl border-t border-border w-full min-w-[100vw]",
+              "shadow-2xl border-t border-border w-full min-w-[100vw] min-h-[70vh]",
               className
             )}
             initial={{ y: "100%" }}
