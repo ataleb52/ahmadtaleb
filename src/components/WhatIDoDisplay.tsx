@@ -117,7 +117,7 @@ export function WhatIDoDisplay() {
           transition={{ duration: 0.3 }}
           className="w-full max-w-lg flex flex-col items-center space-y-4"
         >
-          <button
+          {/* <button
             className="w-full text-left p-4 bg-gray-700/60 hover:bg-gray-700/90 border border-gray-600 rounded-lg transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-cyan-500 group"
             onClick={handleWorkshopClick}
           >
@@ -126,9 +126,9 @@ export function WhatIDoDisplay() {
               <span className="text-gray-100 group-hover:text-white text-base font-medium">View My Solution Workshop</span>
             </div>
             <p className="text-xs text-gray-400 ml-9 mt-1 group-hover:text-gray-300">
-              See what I'm currently working on and past solutions.
+              See what I\'m currently working on and past solutions.
             </p>
-          </button>
+          </button> */}
 
           <button
             className="w-full text-left p-4 bg-gray-700/60 hover:bg-gray-700/90 border border-gray-600 rounded-lg transition-all duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-cyan-500 group"
