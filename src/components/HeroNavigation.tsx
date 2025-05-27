@@ -11,6 +11,8 @@ export interface HeroNavigationProps {
   onNavLinkClick?: (href: string) => void; 
 }
 
+const TYPING_SPEED = 75; // ms per character
+
 export function HeroNavigation({ 
   isVisible = false,
   delay = 0, 
@@ -18,7 +20,10 @@ export function HeroNavigation({
 }: HeroNavigationProps) {
   const [showNavigation, setShowNavigation] = useState(false);
   const [isBioPanelOpen, setIsBioPanelOpen] = useState(false);
-  const [isWhatIDoPanelOpen, setIsWhatIDoPanelOpen] = useState(false); // New state for "What I do" panel
+  const [isWhatIDoPanelOpen, setIsWhatIDoPanelOpen] = useState(false);
+  
+  const [typedBioTitle, setTypedBioTitle] = useState('');
+  const [typedServicesTitle, setTypedServicesTitle] = useState('');
 
   useEffect(() => {
     if (isVisible) {
@@ -28,6 +33,46 @@ export function HeroNavigation({
       return () => clearTimeout(timer);
     }
   }, [isVisible, delay]);
+
+  // Effect for Bio Panel Title Animation
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isBioPanelOpen) {
+      const targetTitle = "~/bio.txt";
+      let index = 0;
+      setTypedBioTitle(''); // Reset before starting
+      timer = setInterval(() => {
+        setTypedBioTitle(targetTitle.slice(0, index));
+        index++;
+        if (index > targetTitle.length) {
+          clearInterval(timer);
+        }
+      }, TYPING_SPEED);
+    } else {
+      setTypedBioTitle(''); // Clear title when panel is closed
+    }
+    return () => clearInterval(timer);
+  }, [isBioPanelOpen]);
+
+  // Effect for What I Do Panel Title Animation
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isWhatIDoPanelOpen) {
+      const targetTitle = "~/services.list";
+      let index = 0;
+      setTypedServicesTitle(''); // Reset before starting
+      timer = setInterval(() => {
+        setTypedServicesTitle(targetTitle.slice(0, index));
+        index++;
+        if (index > targetTitle.length) {
+          clearInterval(timer);
+        }
+      }, TYPING_SPEED);
+    } else {
+      setTypedServicesTitle(''); // Clear title when panel is closed
+    }
+    return () => clearInterval(timer);
+  }, [isWhatIDoPanelOpen]);
 
   const handleCardClick = (key: string, href?: string) => {
     if (key === 'about') {
@@ -120,7 +165,10 @@ export function HeroNavigation({
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="ml-2 text-sm text-gray-300 font-mono">~/bio.txt</span>
+            <span className="ml-2 text-sm text-gray-300 font-mono">
+              {typedBioTitle}
+              {isBioPanelOpen && typedBioTitle.length < "~/bio.txt".length && <span className="animate-pulse">_</span>}
+            </span>
           </div>
           <button
             onClick={() => setIsBioPanelOpen(false)}
@@ -150,7 +198,10 @@ export function HeroNavigation({
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
             <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="ml-2 text-sm text-gray-300 font-mono">~/services.list</span>
+            <span className="ml-2 text-sm text-gray-300 font-mono">
+              {typedServicesTitle}
+              {isWhatIDoPanelOpen && typedServicesTitle.length < "~/services.list".length && <span className="animate-pulse">_</span>}
+            </span>
           </div>
           <button
             onClick={() => setIsWhatIDoPanelOpen(false)}
