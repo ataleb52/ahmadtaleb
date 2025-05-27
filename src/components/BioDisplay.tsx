@@ -3,20 +3,38 @@ import { motion } from "framer-motion";
 export function BioDisplay() {
   const bioContent = [
     {
-      command: "whoami",
-      output: "Ahmad Taleb - Product Manager & Developer"
+      command: "cat /etc/origin_story",
+      output: `I’m a Tucson native, product of the ’90s — a Blink-182-listening, Gameboy-wielding kid who spent his childhood climbing trees, running around playgrounds, and staying out until the streetlights came on.`
     },
     {
-      command: "cat experience.txt",
-      output: "10+ years in product strategy and development\nSpecialized in building scalable solutions and developer tools"
+      command: "cat /etc/early_lessons",
+      output: `I grew up in a small business family. Washed vans. Peeled potatoes. Helped customers. Loaded trucks. You get it.`
     },
     {
-      command: "ls ./skills",
-      output: "product-strategy.md\nuser-experience.yml\ntech-architecture.ts\nstartup-scaling.sh"
+      command: "cat /etc/core_function",
+      output: `These days, I solve problems for a living.
+Sometimes with software. Sometimes with strategy.
+Always with initiative, craftsmanship — and above all, integrity.`
     },
     {
-      command: "cat approach.md",
-      output: "I combine technical expertise with strategic thinking to build products that solve real problems. My approach is systematic, data-driven, and always focused on delivering value."
+      command: "cat /etc/applied_knowledge",
+      output: `I’ve spent years in tech learning how systems grow, break, and compound — and how to apply those lessons in places they’re usually ignored. Whether it’s a scrappy business or a complex team, I help build the kind of solutions that hold up over time.`
+    },
+    {
+      command: "echo $MOTTO",
+      output: `My personal motto? “I’ll figure it out.”
+I’ve got a knack for jumping into the deep end and learning how to swim — fast.`
+    },
+    {
+      command: "ls /strengths",
+      output: `The three things I do best:
+	1.	Listen.
+	2.	Understand the problem — and the people experiencing it.
+	3.	Build solutions that give people and businesses control of their experience.`
+    },
+    {
+      command: "cat /etc/guiding_principle",
+      output: `I believe the best solutions leave people better off — not just with something that works, but with something they own.`
     }
   ];
 
