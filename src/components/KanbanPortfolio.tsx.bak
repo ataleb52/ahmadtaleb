@@ -1,11 +1,5 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { motion, useMotionValue, AnimatePresence, useMotionTemplate, useSpring } from 'framer-motion';
-import { PenTool, Wrench, CheckCircle, Search, Filter, X, Clock, LayoutGrid, ListTodo, ExternalLink, ChevronRight } from 'lucide-react';
-import { useMediaQuery } from '../hooks/useMediaQuery';
-import { cn } from '@/lib/utils';
-
-// Solution type definition with new fields
-export type Solution = {
+import {// Solution type definition
+type Solution = {
   id: string;
   title: string;
   description: string;
@@ -16,33 +10,31 @@ export type Solution = {
   tags: string[];
   link?: string;
   relatedSolutions?: string[]; // IDs of related solutions
-  detailComponentId?: string; // Reference to the component for detailed content
+  detailComponentId?: string; // Reference to the component that will render detailed content
   thumbnailUrl?: string; // Optional thumbnail image for the card
   previewDescription?: string; // Short teaser text that hints at the content
+};eEffect, useRef } from 'react';
+import { motion, useMotionValue, AnimatePresence, useMotionTemplate, useSpring } from 'framer-motion';
+import { PenTool, Wrench, CheckCircle, Search, Filter, X, Clock, LayoutGrid, ListTodo } from 'lucide-react';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import { cn } from '@/lib/utils';
+
+// Type definitions (Solution, etc.) should be here or imported
+
+// ... (Solution type definition as provided previously) ...
+type Solution = {
+  id: string;
+  title: string;
+  description: string;
+  impact: string;
+  status: 'blueprint' | 'workbench' | 'showcase';
+  progress: number; // 0-100
+  date?: string;
+  tags: string[];
+  link?: string;
+  relatedSolutions?: string[]; // IDs of related solutions
 };
 
-// Lazily load the portfolio item components
-const LegacySystemsShowcase = lazy(() => import('./portfolio-items/LegacySystemsShowcase'));
-const CustomerInsightsShowcase = lazy(() => import('./portfolio-items/CustomerInsightsShowcase'));
-const PortfolioSystemShowcase = lazy(() => import('./portfolio-items/PortfolioSystemShowcase'));
-const GenericDetailView = lazy(() => import('./portfolio-items/GenericDetailView'));
-
-// Component mapping for dynamic loading
-const PortfolioItemComponents: Record<string, React.ComponentType<{solution: Solution}>> = {
-  'LegacySystemsShowcase': LegacySystemsShowcase,
-  'CustomerInsightsShowcase': CustomerInsightsShowcase, 
-  'PortfolioSystemShowcase': PortfolioSystemShowcase,
-  'GenericDetailView': GenericDetailView
-};
-
-// Loading component for Suspense fallback
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center h-40">
-      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blueprint"></div>
-    </div>
-  );
-}
 
 export function SolutionWorkshop() {
   const [activeSolution, setActiveSolution] = useState<Solution | null>(null);
@@ -104,10 +96,7 @@ export function SolutionWorkshop() {
       status: 'blueprint',
       progress: 0,
       tags: ['Legacy Systems', 'Architecture'],
-      relatedSolutions: ['workbench-2', 'showcase-1'],
-      detailComponentId: 'LegacySystemsShowcase',
-      thumbnailUrl: '/images/legacy-systems-thumb.jpg',
-      previewDescription: 'A systematic approach to modernizing outdated but critical infrastructure while minimizing business disruption'
+      relatedSolutions: ['workbench-2', 'showcase-1']
     },
     {
       id: 'blueprint-2',
@@ -117,9 +106,6 @@ export function SolutionWorkshop() {
       status: 'blueprint',
       progress: 0,
       tags: ['Analytics', 'Customer Experience'],
-      detailComponentId: 'CustomerInsightsShowcase',
-      thumbnailUrl: '/images/customer-insights-thumb.jpg',
-      previewDescription: 'Uncovering hidden patterns in customer behavior to drive more effective marketing and product decisions'
     },
     {
       id: 'workbench-1',
@@ -130,10 +116,7 @@ export function SolutionWorkshop() {
       progress: 75,
       tags: ['Personal Brand', 'UX Design'],
       link: '#',
-      relatedSolutions: ['showcase-2'],
-      detailComponentId: 'PortfolioSystemShowcase',
-      thumbnailUrl: '/images/portfolio-system-thumb.jpg',
-      previewDescription: 'Meta-project: This very portfolio system that showcases my approach to problem-solving through interactive design'
+      relatedSolutions: ['showcase-2']
     },
     {
       id: 'workbench-2',
@@ -143,8 +126,7 @@ export function SolutionWorkshop() {
       status: 'workbench',
       progress: 40,
       tags: ['Data Integration', 'Business Intelligence'],
-      relatedSolutions: ['blueprint-1', 'showcase-1'],
-      previewDescription: 'Breaking down organizational data barriers to enable unified business intelligence and decision-making'
+      relatedSolutions: ['blueprint-1', 'showcase-1']
     },
     {
       id: 'showcase-1',
@@ -156,8 +138,7 @@ export function SolutionWorkshop() {
       date: 'Q4 2023',
       tags: ['E-commerce', 'Systems Integration'],
       link: '/case-studies/ecommerce',
-      relatedSolutions: ['workbench-2', 'blueprint-1'],
-      previewDescription: 'An end-to-end e-commerce solution that eliminated inventory discrepancies and streamlined the order process'
+      relatedSolutions: ['workbench-2', 'blueprint-1']
     },
     {
       id: 'showcase-2',
@@ -169,8 +150,7 @@ export function SolutionWorkshop() {
       date: 'Q2 2023',
       tags: ['Operations', 'Workflow Automation'],
       link: '/case-studies/fulfillment',
-      relatedSolutions: ['workbench-1'],
-      previewDescription: 'A workflow automation solution that dramatically reduced order fulfillment times and improved customer satisfaction'
+      relatedSolutions: ['workbench-1']
     }
   ];
 
@@ -205,6 +185,7 @@ export function SolutionWorkshop() {
       mouseY.set(workshopRef.current.offsetHeight / 2);
     }
   }, [isMobile, mouseX, mouseY, workshopRef]);
+
 
   if (isMobile) {
     return (
@@ -340,7 +321,7 @@ export function SolutionWorkshop() {
   );
 }
 
-// Enhanced SolutionCard component with animations and better visuals
+// Standard solution card for list view (Placeholder - needs definition if used by desktop)
 function SolutionCard({ 
   solution, 
   onClick 
@@ -348,72 +329,16 @@ function SolutionCard({
   solution: Solution, 
   onClick: () => void 
 }) {
-  const statusColorMap = {
-    blueprint: 'amber',
-    workbench: 'blueprint',
-    showcase: 'emerald'
-  };
-  const statusColor = statusColorMap[solution.status];
-  
+  // Simplified placeholder
   return (
-    <motion.div 
-      whileHover={{ y: -2, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={onClick} 
-      className={`p-3 mb-3 bg-gray-800/50 hover:bg-gray-800/80 rounded-md border border-gray-700 hover:border-${statusColor}-500/50 cursor-pointer shadow-sm hover:shadow transition-all duration-200 overflow-hidden group`}
-    >
-      {/* Title and Status Indicator */}
-      <div className="flex items-start justify-between mb-1">
-        <h4 className="font-semibold text-white group-hover:text-white transition-colors duration-200">{solution.title}</h4>
-        <div className={`flex-shrink-0 w-2 h-2 rounded-full bg-${statusColor}-500 mt-1.5`}></div>
-      </div>
-      
-      {/* Description or Preview Description */}
-      <p className="text-xs text-gray-400 mb-2 line-clamp-2 group-hover:text-gray-300 transition-colors duration-200">
-        {solution.previewDescription || solution.description.substring(0, 100) + (solution.description.length > 100 ? '...' : '')}
-      </p>
-      
-      {/* Thumbnail if available */}
-      {solution.thumbnailUrl && (
-        <div className="mb-2 h-24 overflow-hidden rounded bg-gray-900 relative">
-          <img src={solution.thumbnailUrl} alt={solution.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-200" />
-        </div>
-      )}
-      
-      {/* Progress for workbench items */}
-      {solution.status === 'workbench' && (
-        <div className="mb-2">
-          <div className="flex justify-between text-[11px] text-gray-500 mb-0.5">
-            <span>Progress</span>
-            <span>{solution.progress}%</span>
-          </div>
-          <div className="w-full bg-gray-700/70 h-1 rounded-full overflow-hidden">
-            <div className={`bg-${statusColor}-500 h-full transition-all duration-500`} style={{ width: `${solution.progress}%` }}></div>
-          </div>
-        </div>
-      )}
-      
-      {/* Tags */}
-      {solution.tags && solution.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
-          {solution.tags.slice(0, 2).map(tag => (
-            <span key={tag} className="px-1.5 py-0.5 text-[10px] rounded-full bg-gray-700/80 text-gray-400">{tag}</span>
-          ))}
-          {solution.tags.length > 2 && (
-             <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-gray-700/80 text-gray-400">+{solution.tags.length - 2} more</span>
-          )}
-        </div>
-      )}
-      
-      {/* Call to Action */}
-      <div className={`mt-2 text-xs text-${statusColor}-400 font-medium flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
-        View details <ChevronRight size={14} className="ml-1" />
-      </div>
-    </motion.div>
+    <div onClick={onClick} className={`p-2 border rounded mb-2 cursor-pointer hover:border-${solution.status === 'blueprint' ? 'amber' : solution.status === 'workbench' ? 'blue' : 'green'}-500`}>
+      <h4 className="font-semibold">{solution.title}</h4>
+      <p className="text-xs">{solution.description.substring(0,50)}...</p>
+    </div>
   );
 }
 
-// Enhanced ListView with better visuals
+// List view (Placeholder - needs definition if used by desktop)
 function ListView({ 
   solutions, 
   onSelectSolution 
@@ -422,13 +347,13 @@ function ListView({
   onSelectSolution: (solution: Solution) => void
 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="space-y-2">
       {solutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => onSelectSolution(s)} />)}
     </div>
   );
 }
 
-// Enhanced SolutionDetail Modal with dynamic component loading
+// SolutionDetail Modal (Placeholder - needs definition)
 function SolutionDetail({
   solution,
   relatedSolutions,
@@ -440,124 +365,26 @@ function SolutionDetail({
   onClose: () => void;
   onSelectRelated: (solution: Solution) => void;
 }) {
-  // Determine which component to render based on detailComponentId
-  const DetailComponent = solution.detailComponentId && 
-    PortfolioItemComponents[solution.detailComponentId] ? 
-    PortfolioItemComponents[solution.detailComponentId] : 
-    PortfolioItemComponents.GenericDetailView;
-
-  // Get status-based styling
-  const getStatusColor = (status: Solution['status']) => {
-    const colorMap: Record<string, string> = {
-      blueprint: 'amber',
-      workbench: 'blueprint',
-      showcase: 'emerald'
-    };
-    return colorMap[status];
-  };
-  
-  const statusColor = getStatusColor(solution.status);
-  const statusLabel = solution.status.charAt(0).toUpperCase() + solution.status.slice(1);
-  const statusIcon = solution.status === 'blueprint' ? <PenTool size={16} /> : 
-                     solution.status === 'workbench' ? <Wrench size={16} /> : 
-                     <CheckCircle size={16} />;
-
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      onClick={onClose}
-    >
-      <motion.div 
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        transition={{ type: 'spring', duration: 0.5 }}
-        className="bg-gray-900 rounded-lg max-w-3xl w-full max-h-[80vh] overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="p-4 border-b border-gray-700 flex justify-between items-start">
-          <div>
-            <h3 className="text-xl font-semibold text-white mb-1">{solution.title}</h3>
-            <div className="flex items-center gap-2">
-              <span className={`text-xs px-2 py-0.5 rounded-full bg-${statusColor}-500/20 text-${statusColor}-400 flex items-center gap-1`}>
-                {statusIcon} {statusLabel}
-              </span>
-              {solution.date && (
-                <span className="text-xs text-gray-500 flex items-center">
-                  <Clock size={12} className="mr-1" /> {solution.date}
-                </span>
-              )}
-            </div>
-          </div>
-          <button 
-            onClick={onClose}
-            className="p-1 text-gray-500 hover:text-gray-300 bg-gray-800/50 hover:bg-gray-800 rounded-full"
-          >
-            <X size={18} />
-          </button>
-        </div>
-        
-        {/* Content Area */}
-        <div className="flex-grow overflow-y-auto p-5">
-          <Suspense fallback={<LoadingSpinner />}>
-            <DetailComponent solution={solution} />
-          </Suspense>
-          
-          {/* Related Items */}
-          {relatedSolutions.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-700/50">
-              <h4 className="text-md font-semibold mb-3 text-gray-300">Related Solutions:</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {relatedSolutions.map(rs => (
-                  <div 
-                    key={rs.id}
-                    onClick={() => onSelectRelated(rs)}
-                    className={`p-3 rounded-md border border-gray-700 bg-gray-800/30 hover:bg-gray-800/80 cursor-pointer hover:border-${getStatusColor(rs.status)}-500/50 transition-colors`}
-                  >
-                    <div className="flex items-start">
-                      <div className={`mr-2 mt-1 w-2 h-2 rounded-full bg-${getStatusColor(rs.status)}-500 flex-shrink-0`}></div>
-                      <div>
-                        <h5 className="font-medium text-sm text-gray-200">{rs.title}</h5>
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{rs.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Footer with actions */}
-        <div className="p-4 border-t border-gray-700 flex justify-between items-center">
-          <button 
-            onClick={onClose}
-            className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 rounded-md text-gray-300"
-          >
-            Close
-          </button>
-          
-          {solution.link && (
-            <a 
-              href={solution.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`px-3 py-1.5 text-sm bg-${statusColor}-500/20 hover:bg-${statusColor}-500/30 text-${statusColor}-400 hover:text-${statusColor}-300 rounded-md flex items-center`}
-            >
-              View Case Study <ExternalLink size={14} className="ml-1.5" />
-            </a>
-          )}
-        </div>
-      </motion.div>
-    </motion.div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 p-6 rounded-lg max-w-lg w-full">
+        <h3 className="text-xl font-semibold mb-2">{solution.title}</h3>
+        <p className="text-sm mb-1">Status: {solution.status}</p>
+        <p className="text-sm mb-1">Description: {solution.description}</p>
+        <p className="text-sm mb-3">Impact: {solution.impact}</p>
+        <h4 className="text-md font-semibold mb-1">Related:</h4>
+        {relatedSolutions.length > 0 ? (
+          <ul className="list-disc list-inside text-sm mb-3">
+            {relatedSolutions.map(rs => <li key={rs.id} onClick={() => onSelectRelated(rs)} className="cursor-pointer hover:text-blueprint">{rs.title}</li>)}
+          </ul>
+        ) : <p className="text-sm text-gray-500 mb-3">None</p>}
+        <button onClick={onClose} className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-md">Close</button>
+      </div>
+    </div>
   );
 }
 
-// Filter button component 
+// Filter button component (Placeholder - needs definition)
 function FilterButton({
   label,
   count,
@@ -593,7 +420,7 @@ function FilterButton({
 
 export const SolutionBlueprint = SolutionWorkshop;
 
-// Mobile View Components
+// New Mobile View Components
 
 interface SolutionWorkshopMobileViewProps {
   solutions: Solution[];
@@ -660,61 +487,47 @@ function SolutionWorkshopMobileView({
       </div>
 
       {/* Search Input */}
-      <AnimatePresence>
-        {showSearch && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }} 
-            animate={{ opacity: 1, height: 'auto' }} 
-            exit={{ opacity: 0, height: 0 }} 
-            className="mb-2 px-1"
-          >
-            <input 
-              type="text"
-              placeholder="Search all solutions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-2 text-xs rounded-md bg-gray-800 border border-gray-700 focus:ring-1 focus:ring-blueprint focus:border-blueprint"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {showSearch && (
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-2 px-1">
+          <input 
+            type="text"
+            placeholder="Search all solutions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 text-xs rounded-md bg-gray-800 border border-gray-700 focus:ring-1 focus:ring-blueprint focus:border-blueprint"
+          />
+        </motion.div>
+      )}
 
       {/* Tag Filter Dropdown */}
-      <AnimatePresence>
-        {showTagFilter && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-3 p-2 bg-gray-800 rounded-md mx-1"
-          >
-            <h3 className="text-xs font-semibold mb-1.5 text-gray-400">Filter by Tag:</h3>
-            <div className="flex flex-wrap gap-1.5">
+      {showTagFilter && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 p-2 bg-gray-800 rounded-md mx-1">
+          <h3 className="text-xs font-semibold mb-1.5 text-gray-400">Filter by Tag:</h3>
+          <div className="flex flex-wrap gap-1.5">
+            <button 
+              onClick={() => setFilterTag(null)} 
+              className={cn(
+                'px-2 py-1 text-xs rounded-full',
+                !filterTag ? 'bg-blueprint text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+              )}
+            >
+              All Tags
+            </button>
+            {allTags.map(tag => (
               <button 
-                onClick={() => setFilterTag(null)} 
+                key={tag} 
+                onClick={() => setFilterTag(tag)} 
                 className={cn(
                   'px-2 py-1 text-xs rounded-full',
-                  !filterTag ? 'bg-blueprint text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                  filterTag === tag ? 'bg-blueprint text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                 )}
               >
-                All Tags
+                {tag}
               </button>
-              {allTags.map(tag => (
-                <button 
-                  key={tag} 
-                  onClick={() => setFilterTag(tag)} 
-                  className={cn(
-                    'px-2 py-1 text-xs rounded-full',
-                    filterTag === tag ? 'bg-blueprint text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                  )}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Tabs */}
       <div className="flex border-b border-gray-700 mb-1">
@@ -738,28 +551,24 @@ function SolutionWorkshopMobileView({
 
       {/* Content List */}
       <div className="flex-grow overflow-y-auto space-y-2 p-1">
-        <AnimatePresence>
-          {currentSolutionsToDisplay.length > 0 ? (
-            currentSolutionsToDisplay.map(solution => (
-              <MobileSolutionCard key={solution.id} solution={solution} onClick={() => onSelectSolution(solution)} />
-            ))
-          ) : (
-            <motion.p 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              className="text-center text-gray-500 py-6 text-xs"
-            >
-              No solutions match your criteria.
-            </motion.p>
-          )}
-        </AnimatePresence>
+        {currentSolutionsToDisplay.length > 0 ? (
+          currentSolutionsToDisplay.map(solution => (
+            <MobileSolutionCard key={solution.id} solution={solution} onClick={() => onSelectSolution(solution)} />
+          ))
+        ) : (
+          <p className="text-center text-gray-500 py-6 text-xs">No solutions match your criteria.</p>
+        )}
       </div>
     </div>
   );
 }
 
-// Enhanced Mobile Solution Card
-function MobileSolutionCard({ solution, onClick }: { solution: Solution; onClick: () => void }) {
+interface MobileSolutionCardProps {
+  solution: Solution;
+  onClick: () => void;
+}
+
+function MobileSolutionCard({ solution, onClick }: MobileSolutionCardProps) {
   const statusConfig = {
     blueprint: { icon: <PenTool size={16} className="text-amber-500" />, color: 'amber', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/30', progressColor: 'bg-amber-500' },
     workbench: { icon: <Wrench size={16} className="text-blueprint" />, color: 'blueprint', bgColor: 'bg-blueprint/10', borderColor: 'border-blueprint/30', progressColor: 'bg-blueprint' },
@@ -796,16 +605,7 @@ function MobileSolutionCard({ solution, onClick }: { solution: Solution; onClick
         <div className="flex-shrink-0 pt-0.5">{config.icon}</div>
         <div className="flex-grow min-w-0">
           <h3 className={cn('font-semibold text-xs mb-0.5 truncate', getTextColorClass(config.color))}>{solution.title}</h3>
-          <p className="text-xs text-gray-400 line-clamp-2 mb-1.5">
-            {solution.previewDescription || solution.description}
-          </p>
-          
-          {/* Thumbnail image if available */}
-          {solution.thumbnailUrl && (
-            <div className="mb-1.5 h-16 overflow-hidden rounded bg-gray-900 relative">
-              <img src={solution.thumbnailUrl} alt={solution.title} className="w-full h-full object-cover" />
-            </div>
-          )}
+          <p className="text-xs text-gray-400 line-clamp-2 mb-1.5">{solution.description}</p>
           
           {solution.status === 'workbench' && solution.progress > 0 && (
             <div className="mb-1.5">
