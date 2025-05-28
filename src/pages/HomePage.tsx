@@ -7,7 +7,7 @@ import { AboutMeSection } from '@/components/AboutMeSection';
 import { StartupAboutSection } from '@/components/StartupAboutSection';
 import { StartupSwissArmySection } from '@/components/StartupSwissArmySection';
 import { CorporateDiagnosticSection } from '@/components/CorporateDiagnosticSection';
-import { ManifestoSection } from '@/components/ManifestoSection';
+
 import { TerminalBioSection } from '@/components/TerminalBioSection'; // Import the new component
 import '@/styles/animations.css'; // Import animations
 
@@ -63,11 +63,6 @@ export default function HomePage() {
         navContainerRef={heroSectionRef as React.RefObject<HTMLDivElement>} // Added type assertion
         onLinkClick={handleNavLinkClick} // Updated to use the new handler
       />
-      
-      {/* Manifesto Section */}
-      <section id="manifesto" className="relative">
-        <ManifestoSection />
-      </section>
       
       {/* Solutions Section */}
       <section id="solutions" className="bg-white">
