@@ -1,27 +1,13 @@
+import React from 'react';
 import { motion } from 'framer-motion';
-
-// Use Solution type directly to avoid import issues
-interface Solution {
-  id: string;
-  title: string;
-  description: string;
-  impact: string;
-  status: 'blueprint' | 'workbench' | 'showcase';
-  progress: number;
-  date?: string;
-  tags: string[];
-  link?: string;
-  relatedSolutions?: string[];
-  detailComponentId?: string;
-  thumbnailUrl?: string;
-  previewDescription?: string;
-}
+import { LightbulbIcon } from 'lucide-react'; // Corrected icon name
+import type { Solution } from '@/types/solution'; // Import unified Solution type
 
 interface ShowcaseProps {
-  solution: Solution;
+  solution: Solution; // Use imported Solution type
 }
 
-export default function LegacySystemsShowcase({ solution }: ShowcaseProps) {
+const LegacySystemsShowcase: React.FC<ShowcaseProps> = ({ solution }) => {
   return (
     <div className="space-y-6">
       <p className="text-gray-300 leading-relaxed">{solution.description}</p>
@@ -84,7 +70,8 @@ export default function LegacySystemsShowcase({ solution }: ShowcaseProps) {
               className="w-full h-full object-cover opacity-70"
             />
           ) : (
-            <p className="text-gray-500">Legacy System Modernization Diagram</p>
+            // Using LightbulbIcon here as an example, if appropriate, or a placeholder
+            <LightbulbIcon className="w-16 h-16 text-gray-500" /> 
           )}
           <div className="absolute inset-0 bg-gradient-to-tr from-gray-900/80 via-transparent to-transparent"></div>
           <div className="absolute bottom-4 left-4">
@@ -97,3 +84,5 @@ export default function LegacySystemsShowcase({ solution }: ShowcaseProps) {
     </div>
   );
 }
+
+export default LegacySystemsShowcase;

@@ -3,6 +3,8 @@ import { MainLayout } from '@/layouts/MainLayout';
 import { DesignSystemLayout } from '@/layouts/DesignSystemLayout';
 import HomePage from '@/pages/HomePage';
 import AboutPage from '@/pages/AboutPage';
+import SystemBreakdownPage from '@/pages/SystemBreakdownPage'; // Added this line
+import PortfolioEditorPage from '@/pages/PortfolioEditorPage'; // Added this line
 
 // Design System pages
 import { OverviewPage } from '@/pages/dev/OverviewPage';
@@ -22,11 +24,15 @@ function App() {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
-          
+          <Route path="system-breakdown" element={<SystemBreakdownPage />} />
+
+          {/* Portfolio Editor - only accessible in dev mode, but outside /dev path for easier access */}
+          {isDevelopment && <Route path="/portfolio-editor" element={<PortfolioEditorPage />} />}
+
           {/* Catch-all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
-        
+
         {/* Design System routes - only accessible in dev mode */}
         {isDevelopment ? (
           <Route path="/dev" element={<DesignSystemLayout />}>
@@ -35,6 +41,7 @@ function App() {
             <Route path="components" element={<ComponentsPage />} />
             <Route path="patterns" element={<PatternsPage />} />
             <Route path="showcase" element={<ShowcasePage />} />
+            {/* You could also nest it here if preferred: <Route path="portfolio-editor" element={<PortfolioEditorPage />} /> */}
           </Route>
         ) : (
           <Route path="/dev/*" element={<Navigate to="/" replace />} />

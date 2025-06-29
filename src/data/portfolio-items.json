@@ -1,0 +1,42 @@
+[
+  {
+    "id": "legacy-systems-modernization",
+    "title": "Legacy Systems Modernization",
+    "description": "Organizations stuck with 15+ year old infrastructure that slows innovation. This solution provides a systematic approach to modernizing outdated but critical infrastructure while minimizing business disruption.",
+    "impact": "Will enable faster deployments and reduce maintenance costs by 60%.",
+    "status": "blueprint",
+    "progress": 10,
+    "detailComponentId": "LegacySystemsShowcase",
+    "previewDescription": "Modernizing critical infrastructure for enhanced performance and scalability.",
+    "thumbnailUrl": "/images/legacy-systems-thumb.jpg",
+    "tags": ["enterprise", "modernization", "architecture"],
+    "relatedSolutions": ["customer-insights-platform"]
+  },
+  {
+    "id": "customer-insights-platform",
+    "title": "Customer Insights Platform",
+    "description": "Companies missing key insights into customer decision-making patterns. This platform consolidates and analyzes customer data to uncover hidden patterns and drive more effective marketing and product decisions.",
+    "impact": "Will surface hidden opportunities and reduce customer acquisition costs.",
+    "status": "workbench",
+    "progress": 65,
+    "detailComponentId": "CustomerInsightsShowcase",
+    "previewDescription": "A platform to consolidate and analyze customer data for actionable insights.",
+    "thumbnailUrl": "/images/customer-insights-thumb.jpg",
+    "tags": ["data", "analytics", "customer-experience"],
+    "relatedSolutions": ["legacy-systems-modernization"]
+  },
+  {
+    "id": "portfolio-communication-clarity",
+    "title": "Portfolio Communication Clarity",
+    "description": "Showcasing problem-solving approach in a memorable, effective way. This meta-project is this very portfolio system, designed to demonstrate my approach to problem-solving through interactive design.",
+    "impact": "This very site—creating a system to demonstrate how I think.",
+    "status": "showcase",
+    "progress": 90,
+    "detailComponentId": "PortfolioSystemShowcase",
+    "previewDescription": "Meta-project: This very portfolio system that showcases my approach to problem-solving.",
+    "thumbnailUrl": "/images/portfolio-system-thumb.jpg",
+    "tags": ["Personal Brand", "UX Design", "React"],
+    "link": "/",
+    "date": "Q1 2024"
+  }
+]

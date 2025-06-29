@@ -1,38 +1,16 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { motion, useMotionValue, AnimatePresence, useMotionTemplate, useSpring } from 'framer-motion';
-import { PenTool, Wrench, CheckCircle, Search, Filter, X, Clock, LayoutGrid, ListTodo, ExternalLink, ChevronRight } from 'lucide-react';
+import { PenTool, Wrench, CheckCircle, Search, Filter, X, Clock, LayoutGrid, ListTodo, ExternalLink } from 'lucide-react';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
-
-// Solution type definition with new fields
-export type Solution = {
-  id: string;
-  title: string;
-  description: string;
-  impact: string;
-  status: 'blueprint' | 'workbench' | 'showcase';
-  progress: number; // 0-100
-  date?: string;
-  tags: string[];
-  link?: string;
-  relatedSolutions?: string[]; // IDs of related solutions
-  detailComponentId?: string; // Reference to the component for detailed content
-  thumbnailUrl?: string; // Optional thumbnail image for the card
-  previewDescription?: string; // Short teaser text that hints at the content
-};
+import type { Solution } from '@/types/solution';
 
 // Lazily load the portfolio item components
-const LegacySystemsShowcase = lazy(() => import('./portfolio-items/LegacySystemsShowcase'));
-const CustomerInsightsShowcase = lazy(() => import('./portfolio-items/CustomerInsightsShowcase'));
-const PortfolioSystemShowcase = lazy(() => import('./portfolio-items/PortfolioSystemShowcase'));
-const GenericDetailView = lazy(() => import('./portfolio-items/GenericDetailView'));
-
-// Component mapping for dynamic loading
-const PortfolioItemComponents: Record<string, React.ComponentType<{solution: Solution}>> = {
-  'LegacySystemsShowcase': LegacySystemsShowcase,
-  'CustomerInsightsShowcase': CustomerInsightsShowcase, 
-  'PortfolioSystemShowcase': PortfolioSystemShowcase,
-  'GenericDetailView': GenericDetailView
+const PortfolioItemComponents: { [key: string]: React.LazyExoticComponent<React.ComponentType<any>> } = {
+  'LegacySystemsShowcase': React.lazy(() => import('@/components/portfolio-items/LegacySystemsShowcase')),
+  'CustomerInsightsShowcase': React.lazy(() => import('@/components/portfolio-items/CustomerInsightsShowcase')),
+  'PortfolioSystemShowcase': React.lazy(() => import('@/components/portfolio-items/PortfolioSystemShowcase')),
+  'GenericDetailView': React.lazy(() => import('@/components/portfolio-items/GenericDetailView')),
 };
 
 // Loading component for Suspense fallback
@@ -44,8 +22,31 @@ function LoadingSpinner() {
   );
 }
 
-export function SolutionWorkshop() {
+const statusConfigGlobal = { // Renamed to avoid conflicts and indicate global scope for this file
+  blueprint: { icon: <PenTool size={16} />, color: 'text-blue-400', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/30', progressColor: 'bg-blue-500' },
+  workbench: { icon: <Wrench size={16} />, color: 'text-amber-400', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/30', progressColor: 'bg-amber-500' },
+  showcase: { icon: <CheckCircle size={16} />, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', borderColor: 'border-emerald-500/30', progressColor: 'bg-emerald-500' },
+  draft: { icon: <PenTool size={16} />, color: 'text-gray-400', bgColor: 'bg-gray-500/10', borderColor: 'border-gray-500/30', progressColor: 'bg-gray-500' },
+  published: { icon: <CheckCircle size={16} />, color: 'text-green-400', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/30', progressColor: 'bg-green-500' },
+  archived: { icon: <Clock size={16} />, color: 'text-slate-400', bgColor: 'bg-slate-500/10', borderColor: 'border-slate-500/30', progressColor: 'bg-slate-500' },
+};
+
+interface SolutionWorkshopProps {
+  solutions?: Solution[]; // Make the prop optional
+  onAddSolution?: () => void;
+  onUpdateSolution?: (solution: Solution) => void;
+  onDeleteSolution?: (id: string) => void;
+}
+
+export function SolutionWorkshop({ 
+  solutions = [], // Provide an empty array as default value
+  onAddSolution,
+  onUpdateSolution,
+  onDeleteSolution 
+}: SolutionWorkshopProps) {
+  const [solutionsData, setSolutionsData] = useState<Solution[]>(solutions);
   const [activeSolution, setActiveSolution] = useState<Solution | null>(null);
+  const [editingSolution, setEditingSolution] = useState<Solution | null>(null); // For modal editing
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [activeArea, setActiveArea] = useState<'blueprint' | 'workbench' | 'showcase' | null>(null);
@@ -57,13 +58,10 @@ export function SolutionWorkshop() {
   const springConfig = { damping: 25, stiffness: 300, mass: 0.7 };
   const animatedMouseX = useSpring(mouseX, springConfig);
   const animatedMouseY = useSpring(mouseY, springConfig);
-
-  // Moved useMotionTemplate to be unconditional
   const gradientBackground = useMotionTemplate`radial-gradient(500px circle at ${animatedMouseX}px ${animatedMouseY}px, rgba(0, 128, 255, 0.1), transparent 70%)`;
 
   useEffect(() => {
     const currentWorkshopRef = workshopRef.current;
-
     const handleMouseMove = (event: MouseEvent) => {
       if (currentWorkshopRef) {
         const rect = currentWorkshopRef.getBoundingClientRect();
@@ -71,112 +69,58 @@ export function SolutionWorkshop() {
         mouseY.set(event.clientY - rect.top);
       }
     };
-
-    const handleMouseLeave = () => {
+    const localHandleMouseLeave = () => { // Renamed to avoid conflict if any outer scope variable exists
       if (currentWorkshopRef) {
         mouseX.set(currentWorkshopRef.offsetWidth / 2);
         mouseY.set(currentWorkshopRef.offsetHeight / 2);
       }
     };
-
     if (currentWorkshopRef) {
       currentWorkshopRef.addEventListener('mousemove', handleMouseMove);
-      currentWorkshopRef.addEventListener('mouseleave', handleMouseLeave);
-      // Set initial position on mount if desktop
+      currentWorkshopRef.addEventListener('mouseleave', localHandleMouseLeave);
       mouseX.set(currentWorkshopRef.offsetWidth / 2);
       mouseY.set(currentWorkshopRef.offsetHeight / 2);
     }
-
     return () => {
       if (currentWorkshopRef) {
         currentWorkshopRef.removeEventListener('mousemove', handleMouseMove);
-        currentWorkshopRef.removeEventListener('mouseleave', handleMouseLeave);
+        currentWorkshopRef.removeEventListener('mouseleave', localHandleMouseLeave);
       }
     };
-  }, [mouseX, mouseY, workshopRef]); // Added workshopRef to dependencies, as its current value affects effect setup.
+  }, [mouseX, mouseY, workshopRef]);
 
-  const solutions: Solution[] = [
-    {
-      id: 'blueprint-1',
-      title: 'Legacy System Dependencies',
-      description: 'Organizations stuck with 15+ year old infrastructure that slows innovation',
-      impact: 'Will enable faster deployments and reduce maintenance costs by 60%',
-      status: 'blueprint',
-      progress: 0,
-      tags: ['Legacy Systems', 'Architecture'],
-      relatedSolutions: ['workbench-2', 'showcase-1'],
-      detailComponentId: 'LegacySystemsShowcase',
-      thumbnailUrl: '/images/legacy-systems-thumb.jpg',
-      previewDescription: 'A systematic approach to modernizing outdated but critical infrastructure while minimizing business disruption'
-    },
-    {
-      id: 'blueprint-2',
-      title: 'Customer Behavior Blind Spots',
-      description: 'Companies missing key insights into customer decision-making patterns',
-      impact: 'Will surface hidden opportunities and reduce customer acquisition costs',
-      status: 'blueprint',
-      progress: 0,
-      tags: ['Analytics', 'Customer Experience'],
-      detailComponentId: 'CustomerInsightsShowcase',
-      thumbnailUrl: '/images/customer-insights-thumb.jpg',
-      previewDescription: 'Uncovering hidden patterns in customer behavior to drive more effective marketing and product decisions'
-    },
-    {
-      id: 'workbench-1',
-      title: 'Portfolio Communication Clarity',
-      description: 'Showcasing problem-solving approach in a memorable, effective way',
-      impact: 'This very site—creating a system to demonstrate how I think',
-      status: 'workbench',
-      progress: 75,
-      tags: ['Personal Brand', 'UX Design'],
-      link: '#',
-      relatedSolutions: ['showcase-2'],
-      detailComponentId: 'PortfolioSystemShowcase',
-      thumbnailUrl: '/images/portfolio-system-thumb.jpg',
-      previewDescription: 'Meta-project: This very portfolio system that showcases my approach to problem-solving through interactive design'
-    },
-    {
-      id: 'workbench-2',
-      title: 'Cross-Department Data Silos',
-      description: 'Isolated systems preventing consolidated business intelligence',
-      impact: 'Reducing manual entry by 70% across 5 departments',
-      status: 'workbench',
-      progress: 40,
-      tags: ['Data Integration', 'Business Intelligence'],
-      relatedSolutions: ['blueprint-1', 'showcase-1'],
-      previewDescription: 'Breaking down organizational data barriers to enable unified business intelligence and decision-making'
-    },
-    {
-      id: 'showcase-1',
-      title: 'E-commerce System Fragmentation',
-      description: 'Multiple disconnected tools causing order delays and inventory errors',
-      impact: 'Reduced operational overhead by 40% and eliminated order delays',
-      status: 'showcase',
-      progress: 100,
-      date: 'Q4 2023',
-      tags: ['E-commerce', 'Systems Integration'],
-      link: '/case-studies/ecommerce',
-      relatedSolutions: ['workbench-2', 'blueprint-1'],
-      previewDescription: 'An end-to-end e-commerce solution that eliminated inventory discrepancies and streamlined the order process'
-    },
-    {
-      id: 'showcase-2',
-      title: 'Manual Fulfillment Bottlenecks',
-      description: 'Order processing delays impacting customer satisfaction',
-      impact: 'Cut processing time from 3 days to 4 hours',
-      status: 'showcase',
-      progress: 100,
-      date: 'Q2 2023',
-      tags: ['Operations', 'Workflow Automation'],
-      link: '/case-studies/fulfillment',
-      relatedSolutions: ['workbench-1'],
-      previewDescription: 'A workflow automation solution that dramatically reduced order fulfillment times and improved customer satisfaction'
+  // Update solutionsData when initialSolutions prop changes
+  useEffect(() => {
+    setSolutionsData(solutions);
+  }, [solutions]);
+
+  const handleEditSolution = (solution: Solution) => {
+    setEditingSolution(solution);
+    setActiveSolution(solution); // Open the modal with the solution to edit
+  };
+
+  const handleSaveEdit = (updatedSolution: Solution) => {
+    onUpdateSolution(updatedSolution);
+    setEditingSolution(null);
+    setActiveSolution(null); // Close modal after save
+  };
+
+  const handleDeleteSolutionCard = (solutionId: string) => {
+    onDeleteSolution(solutionId);
+    if (activeSolution && activeSolution.id === solutionId) {
+      setActiveSolution(null); // Close modal if the active solution is deleted
     }
-  ];
+    if (editingSolution && editingSolution.id === solutionId) {
+      setEditingSolution(null); // Close edit mode if the editing solution is deleted
+    }
+  };
 
-  const filteredSolutions = solutions.filter(solution => 
+
+  // Update filtering logic to use solutionsData
+  const filteredSolutions = solutionsData.filter(solution => 
     (solution.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-     solution.description.toLowerCase().includes(searchQuery.toLowerCase())) &&
+     (solution.description && solution.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+     (solution.previewDescription && solution.previewDescription.toLowerCase().includes(searchQuery.toLowerCase()))) &&
     (!filterTag || solution.tags.includes(filterTag)) &&
     (!activeArea || solution.status === activeArea)
   );
@@ -186,9 +130,9 @@ export function SolutionWorkshop() {
   const showcaseSolutions = filteredSolutions.filter(s => s.status === 'showcase');
 
   const getRelatedSolutions = (solutionId: string) => {
-    const currentSolution = solutions.find(s => s.id === solutionId);
+    const currentSolution = solutionsData.find(s => s.id === solutionId);
     if (!currentSolution || !currentSolution.relatedSolutions) return [];
-    return solutions.filter(s => currentSolution.relatedSolutions!.includes(s.id));
+    return solutionsData.filter(s => currentSolution.relatedSolutions!.includes(s.id));
   };
 
   const toggleViewMode = () => {
@@ -196,7 +140,8 @@ export function SolutionWorkshop() {
   };
 
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const allTags = Array.from(new Set(solutions.flatMap(s => s.tags)));
+  // Update allTags to use solutionsData
+  const allTags = Array.from(new Set(solutionsData.flatMap(s => s.tags)));
 
   // Effect to reset mouse position when switching to desktop view if ref is available
   useEffect(() => {
@@ -247,14 +192,14 @@ export function SolutionWorkshop() {
           </div>
           <FilterButton 
             label="All" 
-            count={solutions.length} 
+            count={solutionsData.length} 
             onClick={() => { setActiveArea(null); setFilterTag(null); }} 
             ariaLabel="Show all solutions"
             selected={!activeArea && !filterTag}
           />
           <FilterButton 
             label="Blueprint" 
-            count={solutions.filter(s=>s.status === 'blueprint').length} 
+            count={solutionsData.filter(s=>s.status === 'blueprint').length} 
             onClick={() => { setActiveArea('blueprint'); setFilterTag(null); }} 
             color="amber"
             icon={<PenTool size={12}/>}
@@ -263,7 +208,7 @@ export function SolutionWorkshop() {
           />
           <FilterButton 
             label="Workbench" 
-            count={solutions.filter(s=>s.status === 'workbench').length} 
+            count={solutionsData.filter(s=>s.status === 'workbench').length} 
             onClick={() => { setActiveArea('workbench'); setFilterTag(null); }} 
             color="blueprint"
             icon={<Wrench size={12}/>}
@@ -272,7 +217,7 @@ export function SolutionWorkshop() {
           />
           <FilterButton 
             label="Showcase" 
-            count={solutions.filter(s=>s.status === 'showcase').length} 
+            count={solutionsData.filter(s=>s.status === 'showcase').length} 
             onClick={() => { setActiveArea('showcase'); setFilterTag(null); }} 
             color="emerald"
             icon={<CheckCircle size={12}/>}
@@ -280,13 +225,23 @@ export function SolutionWorkshop() {
             selected={activeArea === 'showcase'}
           />
         </div>
-        <button 
-          onClick={toggleViewMode}
-          className="px-3 py-1.5 text-xs bg-gray-700/50 hover:bg-gray-700/80 rounded-md flex items-center gap-1.5"
-        >
-          {viewMode === 'workshop' ? <ListTodo size={14}/> : <LayoutGrid size={14}/>} 
-          {viewMode === 'workshop' ? 'List View' : 'Workshop View'}
-        </button>
+        <div className="flex items-center gap-2"> {/* Container for view mode and add button */}
+          <button
+            onClick={onAddSolution}
+            className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md flex items-center gap-1.5"
+            aria-label="Add new solution"
+          >
+            <LayoutGrid size={14}/> {/* Using LayoutGrid as a placeholder, consider a Plus icon */}
+            Add Solution
+          </button>
+          <button 
+            onClick={toggleViewMode}
+            className="px-3 py-1.5 text-xs bg-gray-700/50 hover:bg-gray-700/80 rounded-md flex items-center gap-1.5"
+          >
+            {viewMode === 'workshop' ? <ListTodo size={14}/> : <LayoutGrid size={14}/>} 
+            {viewMode === 'workshop' ? 'List View' : 'Workshop View'}
+          </button>
+        </div>
       </div>
 
       {/* Main Content Area - ensure it's above the gradient */}
@@ -297,19 +252,30 @@ export function SolutionWorkshop() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
-            className="relative z-10 flex-grow grid grid-cols-3 gap-3 overflow-hidden p-2"
+            className="relative z-10 flex-grow flex flex-col gap-3 overflow-hidden p-2"
           >
-            <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
-              <h3 className="text-amber-400 font-semibold mb-2 text-center">Blueprint ({blueprintSolutions.length})</h3>
-              {blueprintSolutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => setActiveSolution(s)} />)}
+            {/* Top section: Blueprint and Workbench side by side */}
+            <div className="grid grid-cols-2 gap-3 h-[45%]">
+              {/* Blueprint Column */}
+              <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
+                <h3 className="text-amber-400 font-semibold mb-2 text-center">Blueprint ({blueprintSolutions.length})</h3>
+                {blueprintSolutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => setActiveSolution(s)} onEdit={() => handleEditSolution(s)} onDelete={() => handleDeleteSolutionCard(s.id)} />)}
+              </div>
+              {/* Workbench Column */}
+              <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
+                <h3 className="text-blueprint font-semibold mb-2 text-center">Workbench ({workbenchSolutions.length})</h3>
+                {workbenchSolutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => setActiveSolution(s)} onEdit={() => handleEditSolution(s)} onDelete={() => handleDeleteSolutionCard(s.id)} />)}
+              </div>
             </div>
-            <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
-              <h3 className="text-blueprint font-semibold mb-2 text-center">Workbench ({workbenchSolutions.length})</h3>
-              {workbenchSolutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => setActiveSolution(s)} />)}
-            </div>
-            <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
-              <h3 className="text-emerald-400 font-semibold mb-2 text-center">Showcase ({showcaseSolutions.length})</h3>
-              {showcaseSolutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => setActiveSolution(s)} />)}
+            
+            {/* Bottom section: Showcase as a full-width section */}
+            <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-[55%] border border-gray-700/50 backdrop-blur-xs">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-emerald-400 font-semibold text-center">Showcase - Portfolio History ({showcaseSolutions.length})</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {showcaseSolutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => setActiveSolution(s)} onEdit={() => handleEditSolution(s)} onDelete={() => handleDeleteSolutionCard(s.id)} />)}
+              </div>
             </div>
           </motion.div>
         ) : (
@@ -320,7 +286,7 @@ export function SolutionWorkshop() {
             exit={{ opacity: 0 }}
             className="relative z-10 flex-grow overflow-y-auto p-2 bg-gray-900/30 backdrop-blur-xs rounded-lg border border-gray-700/50"
           >
-            <ListView solutions={filteredSolutions} onSelectSolution={setActiveSolution} />
+            <ListView solutions={filteredSolutions} onSelectSolution={setActiveSolution} onEditSolution={handleEditSolution} onDeleteSolution={handleDeleteSolutionCard} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -329,10 +295,13 @@ export function SolutionWorkshop() {
       <AnimatePresence>
         {activeSolution && (
           <SolutionDetail 
-            solution={activeSolution} 
+            solution={editingSolution || activeSolution} // If editing, show editingSolution, else activeSolution
+            isEditing={!!editingSolution} // Pass isEditing flag
             relatedSolutions={getRelatedSolutions(activeSolution.id)}
-            onClose={() => setActiveSolution(null)} 
+            onClose={() => { setActiveSolution(null); setEditingSolution(null); }} 
+            onSave={handleSaveEdit} // Pass save handler
             onSelectRelated={setActiveSolution}
+            onDelete={handleDeleteSolutionCard} // Pass delete handler to modal as well
           />
         )}
       </AnimatePresence>
@@ -343,45 +312,71 @@ export function SolutionWorkshop() {
 // Enhanced SolutionCard component with animations and better visuals
 function SolutionCard({ 
   solution, 
-  onClick 
+  onClick,
+  onEdit,
+  onDelete
 }: { 
   solution: Solution, 
-  onClick: () => void 
+  onClick: () => void,
+  onEdit: () => void,
+  onDelete: () => void
 }) {
-  const statusColorMap = {
+  const statusColorMap: Record<string, string> = {
     blueprint: 'amber',
     workbench: 'blueprint',
-    showcase: 'emerald'
+    showcase: 'emerald',
+    draft: 'gray', 
+    published: 'green',
+    archived: 'slate',
   };
-  const statusColor = statusColorMap[solution.status];
+  const statusColor = statusColorMap[solution.status] || 'gray'; // Default to gray
   
   return (
     <motion.div 
       whileHover={{ y: -2, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      onClick={onClick} 
-      className={`p-3 mb-3 bg-gray-800/50 hover:bg-gray-800/80 rounded-md border border-gray-700 hover:border-${statusColor}-500/50 cursor-pointer shadow-sm hover:shadow transition-all duration-200 overflow-hidden group`}
+      // onClick={onClick} // We'll use the main area for onClick, buttons for edit/delete
+      className={`p-3 mb-3 bg-gray-800/50 hover:bg-gray-800/80 rounded-md border border-gray-700 hover:border-${statusColor}-500/50 cursor-pointer shadow-sm hover:shadow transition-all duration-200 overflow-hidden group relative`}
     >
-      {/* Title and Status Indicator */}
-      <div className="flex items-start justify-between mb-1">
-        <h4 className="font-semibold text-white group-hover:text-white transition-colors duration-200">{solution.title}</h4>
-        <div className={`flex-shrink-0 w-2 h-2 rounded-full bg-${statusColor}-500 mt-1.5`}></div>
+      <div onClick={onClick} className="cursor-pointer"> {/* Main clickable area */}
+        {/* Title and Status Indicator */}
+        <div className="flex items-start justify-between mb-1">
+          <h4 className="font-semibold text-white group-hover:text-white transition-colors duration-200">{solution.title}</h4>
+          <div className={`flex-shrink-0 w-2 h-2 rounded-full bg-${statusColor}-500 mt-1.5`}></div>
+        </div>
+        
+        {/* Description or Preview Description */}
+        <p className="text-xs text-gray-400 mb-2 line-clamp-2 group-hover:text-gray-300 transition-colors duration-200">
+          {solution.previewDescription || (solution.description ? solution.description.substring(0, 100) + (solution.description.length > 100 ? '...' : '') : 'No description')}
+        </p>
+        
+        {/* Thumbnail if available */}
+        {solution.thumbnailUrl && (
+          <div className="mb-2 h-24 overflow-hidden rounded bg-gray-900 relative">
+            <img src={solution.thumbnailUrl} alt={solution.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-200" />
+          </div>
+        )}
       </div>
       
-      {/* Description or Preview Description */}
-      <p className="text-xs text-gray-400 mb-2 line-clamp-2 group-hover:text-gray-300 transition-colors duration-200">
-        {solution.previewDescription || solution.description.substring(0, 100) + (solution.description.length > 100 ? '...' : '')}
-      </p>
-      
-      {/* Thumbnail if available */}
-      {solution.thumbnailUrl && (
-        <div className="mb-2 h-24 overflow-hidden rounded bg-gray-900 relative">
-          <img src={solution.thumbnailUrl} alt={solution.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-200" />
-        </div>
-      )}
-      
-      {/* Progress for workbench items */}
-      {solution.status === 'workbench' && (
+      {/* Action buttons - absolutely positioned or flex at bottom */}
+      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <button 
+          onClick={(e) => { e.stopPropagation(); onEdit(); }} 
+          className="p-1 bg-gray-700/70 hover:bg-blue-500/70 rounded text-gray-300 hover:text-white"
+          aria-label="Edit solution"
+        >
+          <PenTool size={12} />
+        </button>
+        <button 
+          onClick={(e) => { e.stopPropagation(); onDelete(); }} 
+          className="p-1 bg-gray-700/70 hover:bg-red-500/70 rounded text-gray-300 hover:text-white"
+          aria-label="Delete solution"
+        >
+          <X size={12} /> {/* Consider Trash2 icon */}
+        </button>
+      </div>
+
+      {(solution.status === 'workbench' || typeof solution.progress === 'number') && solution.progress !== undefined && ( // Ensure progress is defined
         <div className="mb-2">
           <div className="flex justify-between text-[11px] text-gray-500 mb-0.5">
             <span>Progress</span>
@@ -393,22 +388,28 @@ function SolutionCard({
         </div>
       )}
       
-      {/* Tags */}
       {solution.tags && solution.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
           {solution.tags.slice(0, 2).map(tag => (
             <span key={tag} className="px-1.5 py-0.5 text-[10px] rounded-full bg-gray-700/80 text-gray-400">{tag}</span>
           ))}
           {solution.tags.length > 2 && (
-             <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-gray-700/80 text-gray-400">+{solution.tags.length - 2} more</span>
+            <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-gray-600 text-gray-300">+{solution.tags.length - 2}</span>
           )}
         </div>
       )}
-      
-      {/* Call to Action */}
-      <div className={`mt-2 text-xs text-${statusColor}-400 font-medium flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
-        View details <ChevronRight size={14} className="ml-1" />
-      </div>
+
+      {solution.link && (
+        <a 
+          href={solution.link} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          onClick={(e) => e.stopPropagation()} // Prevent card click when link is clicked
+          className="text-xs text-blueprint hover:underline flex items-center gap-1 group-hover:text-blueprint-300 transition-colors duration-200"
+        >
+          View Details <ExternalLink size={10} />
+        </a>
+      )}
     </motion.div>
   );
 }
@@ -416,51 +417,96 @@ function SolutionCard({
 // Enhanced ListView with better visuals
 function ListView({ 
   solutions, 
-  onSelectSolution 
+  onSelectSolution,
+  onEditSolution,
+  onDeleteSolution
 }: { 
   solutions: Solution[],
-  onSelectSolution: (solution: Solution) => void
+  onSelectSolution: (solution: Solution) => void,
+  onEditSolution: (solution: Solution) => void, // Added for consistency
+  onDeleteSolution: (solutionId: string) => void // Added for consistency
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {solutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => onSelectSolution(s)} />)}
+      {solutions.map(s => 
+        <SolutionCard 
+          key={s.id} 
+          solution={s} 
+          onClick={() => onSelectSolution(s)} 
+          onEdit={() => onEditSolution(s)} 
+          onDelete={() => onDeleteSolution(s.id)}
+        />
+      )}
     </div>
   );
 }
 
 // Enhanced SolutionDetail Modal with dynamic component loading
 function SolutionDetail({
-  solution,
+  solution: initialSolution, // Renamed to avoid conflict with internal state
+  isEditing,
   relatedSolutions,
   onClose,
-  onSelectRelated
+  onSave, // Added for saving edits
+  onSelectRelated,
+  onDelete // Added for deleting from modal
 }: {
   solution: Solution;
+  isEditing?: boolean;
   relatedSolutions: Solution[];
   onClose: () => void;
+  onSave?: (solution: Solution) => void; // Optional save handler
   onSelectRelated: (solution: Solution) => void;
+  onDelete?: (solutionId: string) => void; // Optional delete handler
 }) {
-  // Determine which component to render based on detailComponentId
-  const DetailComponent = solution.detailComponentId && 
-    PortfolioItemComponents[solution.detailComponentId] ? 
-    PortfolioItemComponents[solution.detailComponentId] : 
+  const [editableSolution, setEditableSolution] = useState<Solution>(initialSolution);
+
+  useEffect(() => {
+    setEditableSolution(initialSolution); // Sync with prop changes, e.g., when opening for a new solution
+  }, [initialSolution]);
+
+  const DetailComponent = editableSolution.detailComponentId && 
+    PortfolioItemComponents[editableSolution.detailComponentId] ? 
+    PortfolioItemComponents[editableSolution.detailComponentId] : 
     PortfolioItemComponents.GenericDetailView;
 
-  // Get status-based styling
   const getStatusColor = (status: Solution['status']) => {
-    const colorMap: Record<string, string> = {
-      blueprint: 'amber',
-      workbench: 'blueprint',
-      showcase: 'emerald'
-    };
-    return colorMap[status];
+    const colorName = statusConfigGlobal[status]?.color.replace('text-', '').replace('-400', ''); // Extract base color name
+    return colorName || 'gray'; // default color if not found
   };
   
-  const statusColor = getStatusColor(solution.status);
-  const statusLabel = solution.status.charAt(0).toUpperCase() + solution.status.slice(1);
-  const statusIcon = solution.status === 'blueprint' ? <PenTool size={16} /> : 
-                     solution.status === 'workbench' ? <Wrench size={16} /> : 
-                     <CheckCircle size={16} />;
+  const statusColor = statusConfigGlobal[editableSolution.status]?.color || 'text-gray-400';
+  const StatusIcon = statusConfigGlobal[editableSolution.status]?.icon || <PenTool size={16} />;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setEditableSolution(prev => ({
+      ...prev,
+      [name]: name === 'progress' ? parseInt(value, 10) : value,
+    }));
+  };
+
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditableSolution(prev => ({
+      ...prev,
+      tags: e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag !== ''),
+    }));
+  };
+
+  const handleSaveChanges = () => {
+    if (onSave) {
+      onSave(editableSolution);
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (onDelete && window.confirm('Are you sure you want to delete this solution?')) {
+      onDelete(editableSolution.id);
+      onClose(); // Close modal after delete
+    }
+  };
+
+  if (!editableSolution) return null; // Should not happen if modal is open
 
   return (
     <motion.div 
@@ -481,14 +527,47 @@ function SolutionDetail({
         {/* Header */}
         <div className="p-4 border-b border-gray-700 flex justify-between items-start">
           <div>
-            <h3 className="text-xl font-semibold text-white mb-1">{solution.title}</h3>
+            {isEditing ? (
+              <input 
+                type="text"
+                name="title"
+                value={editableSolution.title}
+                onChange={handleInputChange}
+                className="text-xl font-semibold text-white bg-transparent border-b border-gray-700 focus:border-blue-500 outline-none mb-1 w-full"
+              />
+            ) : (
+              <h3 className="text-xl font-semibold text-white mb-1">{editableSolution.title}</h3>
+            )}
             <div className="flex items-center gap-2">
-              <span className={`text-xs px-2 py-0.5 rounded-full bg-${statusColor}-500/20 text-${statusColor}-400 flex items-center gap-1`}>
-                {statusIcon} {statusLabel}
-              </span>
-              {solution.date && (
+              {isEditing ? (
+                <select 
+                  name="status"
+                  value={editableSolution.status}
+                  onChange={handleInputChange}
+                  className="text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none"
+                >
+                  {Object.keys(statusConfigGlobal).map(statusKey => (
+                    <option key={statusKey} value={statusKey}>
+                      {statusKey.charAt(0).toUpperCase() + statusKey.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className={`text-xs px-2 py-0.5 rounded-full bg-${statusColor.replace('text-', '').replace('-400', '')}-500/20 ${statusColor} flex items-center gap-1`}>
+                  {StatusIcon} {editableSolution.status.charAt(0).toUpperCase() + editableSolution.status.slice(1)}
+                </span>
+              )}
+              {isEditing ? (
+                <input 
+                  type="date"
+                  name="date"
+                  value={editableSolution.date}
+                  onChange={handleInputChange}
+                  className="text-xs text-gray-300 bg-gray-700 rounded px-1 py-0.5 border border-transparent focus:border-blue-500 outline-none"
+                />
+              ) : editableSolution.date && (
                 <span className="text-xs text-gray-500 flex items-center">
-                  <Clock size={12} className="mr-1" /> {solution.date}
+                  <Clock size={12} className="mr-1" /> {editableSolution.date}
                 </span>
               )}
             </div>
@@ -503,12 +582,111 @@ function SolutionDetail({
         
         {/* Content Area */}
         <div className="flex-grow overflow-y-auto p-5">
-          <Suspense fallback={<LoadingSpinner />}>
-            <DetailComponent solution={solution} />
-          </Suspense>
+          {isEditing ? (
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-400 mb-1">Description</label>
+                <textarea 
+                  id="description" 
+                  name="description"
+                  rows={4}
+                  value={editableSolution.description}
+                  onChange={handleInputChange}
+                  className="w-full p-2 text-sm bg-gray-800 border border-gray-700 rounded-md text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="previewDescription" className="block text-sm font-medium text-gray-400 mb-1">Preview Description (for card)</label>
+                <textarea 
+                  id="previewDescription" 
+                  name="previewDescription"
+                  rows={2}
+                  value={editableSolution.previewDescription}
+                  onChange={handleInputChange}
+                  className="w-full p-2 text-sm bg-gray-800 border border-gray-700 rounded-md text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="impact" className="block text-sm font-medium text-gray-400 mb-1">Impact</label>
+                <textarea 
+                  id="impact" 
+                  name="impact"
+                  rows={3}
+                  value={editableSolution.impact}
+                  onChange={handleInputChange}
+                  className="w-full p-2 text-sm bg-gray-800 border border-gray-700 rounded-md text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="progress" className="block text-sm font-medium text-gray-400 mb-1">Progress (0-100)</label>
+                <input 
+                  type="number"
+                  id="progress"
+                  name="progress"
+                  min="0"
+                  max="100"
+                  value={editableSolution.progress}
+                  onChange={handleInputChange}
+                  className="w-full p-2 text-sm bg-gray-800 border border-gray-700 rounded-md text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="tags" className="block text-sm font-medium text-gray-400 mb-1">Tags (comma-separated)</label>
+                <input 
+                  type="text"
+                  id="tags"
+                  name="tags"
+                  value={editableSolution.tags.join(', ')}
+                  onChange={handleTagsChange}
+                  className="w-full p-2 text-sm bg-gray-800 border border-gray-700 rounded-md text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="thumbnailUrl" className="block text-sm font-medium text-gray-400 mb-1">Thumbnail URL</label>
+                <input 
+                  type="url"
+                  id="thumbnailUrl"
+                  name="thumbnailUrl"
+                  value={editableSolution.thumbnailUrl}
+                  onChange={handleInputChange}
+                  className="w-full p-2 text-sm bg-gray-800 border border-gray-700 rounded-md text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="link" className="block text-sm font-medium text-gray-400 mb-1">Case Study/Details Link</label>
+                <input 
+                  type="url"
+                  id="link"
+                  name="link"
+                  value={editableSolution.link}
+                  onChange={handleInputChange}
+                  className="w-full p-2 text-sm bg-gray-800 border border-gray-700 rounded-md text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none"
+                />
+              </div>
+               <div>
+                <label htmlFor="detailComponentId" className="block text-sm font-medium text-gray-400 mb-1">Detail Component ID (Optional)</label>
+                <select 
+                  id="detailComponentId" 
+                  name="detailComponentId"
+                  value={editableSolution.detailComponentId || ''}
+                  onChange={handleInputChange}
+                  className="w-full p-2 text-sm bg-gray-800 border border-gray-700 rounded-md text-gray-300 focus:ring-1 focus:ring-blue-500 outline-none"
+                >
+                  <option value="">GenericDetailView (Default)</option>
+                  {Object.keys(PortfolioItemComponents).map(key => (
+                    <option key={key} value={key}>{key}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : (
+            <Suspense fallback={<LoadingSpinner />}>
+              <DetailComponent solution={editableSolution} />
+            </Suspense>
+          )}
           
-          {/* Related Items */}
-          {relatedSolutions.length > 0 && (
+          {/* Related Items - only show in non-editing mode for now */}
+          {!isEditing && relatedSolutions.length > 0 && (
             <div className="mt-8 pt-6 border-t border-gray-700/50">
               <h4 className="text-md font-semibold mb-3 text-gray-300">Related Solutions:</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -534,23 +712,44 @@ function SolutionDetail({
         
         {/* Footer with actions */}
         <div className="p-4 border-t border-gray-700 flex justify-between items-center">
-          <button 
-            onClick={onClose}
-            className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 rounded-md text-gray-300"
-          >
-            Close
-          </button>
-          
-          {solution.link && (
-            <a 
-              href={solution.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`px-3 py-1.5 text-sm bg-${statusColor}-500/20 hover:bg-${statusColor}-500/30 text-${statusColor}-400 hover:text-${statusColor}-300 rounded-md flex items-center`}
+          <div> {/* Left aligned buttons */} 
+            {isEditing && onDelete && (
+                <button 
+                  onClick={handleDeleteConfirm}
+                  className="px-3 py-1.5 text-sm bg-red-700 hover:bg-red-800 rounded-md text-gray-200 mr-2"
+                >
+                  Delete Solution
+                </button>
+            )}
+          </div>
+          <div> {/* Right aligned buttons */} 
+            <button 
+              onClick={onClose}
+              className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 rounded-md text-gray-300 mr-2"
             >
-              View Case Study <ExternalLink size={14} className="ml-1.5" />
-            </a>
-          )}
+              {isEditing ? 'Cancel' : 'Close'}
+            </button>
+            
+            {isEditing && onSave && (
+              <button 
+                onClick={handleSaveChanges}
+                className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 rounded-md text-white"
+              >
+                Save Changes
+              </button>
+            )}
+
+            {!isEditing && editableSolution.link && (
+              <a 
+                href={editableSolution.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`px-3 py-1.5 text-sm bg-${statusColor.replace('text-', '').replace('-400', '')}-500/20 hover:bg-${statusColor.replace('text-', '').replace('-400', '')}-500/30 ${statusColor} hover:${statusColor.replace('400', '300')} rounded-md flex items-center`}
+              >
+                View Case Study <ExternalLink size={14} className="ml-1.5" />
+              </a>
+            )}
+          </div>
         </div>
       </motion.div>
     </motion.div>
@@ -619,26 +818,38 @@ function SolutionWorkshopMobileView({
   setFilterTag,
   allTags
 }: SolutionWorkshopMobileViewProps) {
-  const [activeTab, setActiveTab] = useState<'blueprint' | 'workbench' | 'showcase'>('workbench');
+  const [activeTab, setActiveTab] = useState<'blueprint' | 'workbench'>('workbench');
   const [showSearch, setShowSearch] = useState(false);
   const [showTagFilter, setShowTagFilter] = useState(false);
+  const [showShowcase, setShowShowcase] = useState(false);
 
   const tabs = [
     { id: 'blueprint', label: 'Blueprint', count: blueprintSolutions.length, color: 'amber', icon: <PenTool size={16}/> },
     { id: 'workbench', label: 'Workbench', count: workbenchSolutions.length, color: 'blueprint', icon: <Wrench size={16}/> },
-    { id: 'showcase', label: 'Showcase', count: showcaseSolutions.length, color: 'emerald', icon: <CheckCircle size={16}/> },
   ] as const;
 
   let currentSolutionsToDisplay: Solution[] = [];
   if (activeTab === 'blueprint') currentSolutionsToDisplay = blueprintSolutions;
   else if (activeTab === 'workbench') currentSolutionsToDisplay = workbenchSolutions;
-  else if (activeTab === 'showcase') currentSolutionsToDisplay = showcaseSolutions;
 
+  // Filter active tab solutions
   if (filterTag) {
     currentSolutionsToDisplay = currentSolutionsToDisplay.filter(s => s.tags.includes(filterTag));
   }
   if (searchQuery) {
     currentSolutionsToDisplay = currentSolutionsToDisplay.filter(s => 
+        s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        s.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  // Filter showcase solutions
+  let filteredShowcaseSolutions = showcaseSolutions;
+  if (filterTag) {
+    filteredShowcaseSolutions = filteredShowcaseSolutions.filter(s => s.tags.includes(filterTag));
+  }
+  if (searchQuery) {
+    filteredShowcaseSolutions = filteredShowcaseSolutions.filter(s => 
         s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
         s.description.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -716,7 +927,7 @@ function SolutionWorkshopMobileView({
         )}
       </AnimatePresence>
 
-      {/* Tabs */}
+      {/* Active Work Tabs - Blueprint and Workbench */}
       <div className="flex border-b border-gray-700 mb-1">
         {tabs.map(tab => (
           <button
@@ -724,20 +935,26 @@ function SolutionWorkshopMobileView({
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 py-2.5 px-1 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors 
               ${activeTab === tab.id 
-                ? `border-b-2 ${tab.id === 'blueprint' ? 'border-amber-500 text-amber-400' : tab.id === 'workbench' ? 'border-blueprint text-blueprint' : 'border-emerald-500 text-emerald-400'}` 
+                ? `border-b-2 ${tab.id === 'blueprint' ? 'border-amber-500 text-amber-400' : 'border-blueprint text-blueprint'}` 
                 : 'text-gray-500 hover:text-gray-300 border-b-2 border-transparent'
               }`}
           >
             {tab.icon} 
-            {tab.label} ({tab.id === 'blueprint' ? blueprintSolutions.filter(s => !filterTag || s.tags.includes(filterTag)).filter(s => !searchQuery || s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase())).length :
-                         tab.id === 'workbench' ? workbenchSolutions.filter(s => !filterTag || s.tags.includes(filterTag)).filter(s => !searchQuery || s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase())).length :
-                         showcaseSolutions.filter(s => !filterTag || s.tags.includes(filterTag)).filter(s => !searchQuery || s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase())).length })
+            {tab.label} ({
+              tab.id === 'blueprint' 
+                ? blueprintSolutions.filter(s => !filterTag || s.tags.includes(filterTag))
+                    .filter(s => !searchQuery || s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                 s.description.toLowerCase().includes(searchQuery.toLowerCase())).length
+                : workbenchSolutions.filter(s => !filterTag || s.tags.includes(filterTag))
+                    .filter(s => !searchQuery || s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                 s.description.toLowerCase().includes(searchQuery.toLowerCase())).length
+            })
           </button>
         ))}
       </div>
 
-      {/* Content List */}
-      <div className="flex-grow overflow-y-auto space-y-2 p-1">
+      {/* Active Tab Content */}
+      <div className="flex-grow overflow-y-auto space-y-2 p-1 mb-3">
         <AnimatePresence>
           {currentSolutionsToDisplay.length > 0 ? (
             currentSolutionsToDisplay.map(solution => (
@@ -754,18 +971,50 @@ function SolutionWorkshopMobileView({
           )}
         </AnimatePresence>
       </div>
+
+      {/* Showcase Section - Collapsible */}
+      <div className="border-t border-gray-700 pt-2">
+        <button 
+          onClick={() => setShowShowcase(!showShowcase)}
+          className="w-full flex items-center justify-between py-2 px-1 text-emerald-400"
+        >
+          <div className="flex items-center gap-1.5">
+            <CheckCircle size={16}/>
+            <span className="font-semibold text-sm">Showcase - Portfolio History ({filteredShowcaseSolutions.length})</span>
+          </div>
+          <span className="text-gray-400">
+            {showShowcase ? '↑' : '↓'}
+          </span>
+        </button>
+        
+        <AnimatePresence>
+          {showShowcase && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden space-y-2 p-1"
+            >
+              {filteredShowcaseSolutions.length > 0 ? (
+                filteredShowcaseSolutions.map(solution => (
+                  <MobileSolutionCard key={solution.id} solution={solution} onClick={() => onSelectSolution(solution)} />
+                ))
+              ) : (
+                <p className="text-center text-gray-500 py-3 text-xs">
+                  No showcase solutions match your criteria.
+                </p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
 
 // Enhanced Mobile Solution Card
 function MobileSolutionCard({ solution, onClick }: { solution: Solution; onClick: () => void }) {
-  const statusConfig = {
-    blueprint: { icon: <PenTool size={16} className="text-amber-500" />, color: 'amber', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/30', progressColor: 'bg-amber-500' },
-    workbench: { icon: <Wrench size={16} className="text-blueprint" />, color: 'blueprint', bgColor: 'bg-blueprint/10', borderColor: 'border-blueprint/30', progressColor: 'bg-blueprint' },
-    showcase: { icon: <CheckCircle size={16} className="text-emerald-500" />, color: 'emerald', bgColor: 'bg-emerald-500/10', borderColor: 'border-emerald-500/30', progressColor: 'bg-emerald-500' },
-  };
-  const config = statusConfig[solution.status];
+  const config = statusConfigGlobal[solution.status]; // Use the global config
 
   const getTextColorClass = (colorName: string) => {
     const colorMap: Record<string, string> = {

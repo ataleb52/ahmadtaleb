@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Portfolio Editor Page and Data
+src/pages/PortfolioEditorPage.tsx
+src/data/portfolio-items.local.json

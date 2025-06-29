@@ -1,25 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-
-// Use Solution type directly to avoid import issues
-interface Solution {
-  id: string;
-  title: string;
-  description: string;
-  impact: string;
-  status: 'blueprint' | 'workbench' | 'showcase';
-  progress: number;
-  date?: string;
-  tags: string[];
-  link?: string;
-  relatedSolutions?: string[];
-  detailComponentId?: string;
-  thumbnailUrl?: string;
-  previewDescription?: string;
-}
+import type { Solution } from '@/types/solution'; // Import unified Solution type
 
 interface ShowcaseProps {
-  solution: Solution;
+  solution: Solution; // Use imported Solution type
 }
 
 export default function PortfolioSystemShowcase({ solution }: ShowcaseProps) {
