@@ -5,7 +5,9 @@ import { BioDisplay } from './BioDisplay';
 import { BottomSheet } from './ui/bottom-sheet';
 import { navCards } from '@/content/navCards';
 import { WhatIDoDisplay } from './WhatIDoDisplay';
-import { SolutionWorkshop } from './KanbanPortfolio';
+import { SolutionWorkshop } from './SolutionWorkshop';
+import initialPortfolioItems from '@/data/portfolio-items.json';
+import type { Solution } from '@/types/solution';
 
 export interface HeroNavigationProps {
   isVisible?: boolean;
@@ -23,8 +25,39 @@ export function HeroNavigation({
   const [showNavigation, setShowNavigation] = useState(false);
   const [isBioPanelOpen, setIsBioPanelOpen] = useState(false);
   const [isWhatIDoPanelOpen, setIsWhatIDoPanelOpen] = useState(false);
-  const [isProjectsPanelOpen, setIsProjectsPanelOpen] = useState(false); // New state
-  
+  const [isProjectsPanelOpen, setIsProjectsPanelOpen] = useState(false);
+
+  // Portfolio data state for SolutionWorkshop
+  const [solutions, setSolutions] = useState<Solution[]>(() => {
+    // Deep copy to avoid mutation
+    return JSON.parse(JSON.stringify(initialPortfolioItems)) as Solution[];
+  });
+
+  // Handlers for SolutionWorkshop
+  const handleAddSolution = () => {
+    const newSolution: Solution = {
+      id: `solution-${Date.now()}`,
+      title: 'New Untitled Solution',
+      description: 'Enter a compelling description here. What problem does this solve? What is the core idea?',
+      impact: 'Describe the potential or actual impact of this solution. Quantify if possible.',
+      status: 'blueprint',
+      progress: 0,
+      date: new Date().toISOString().split('T')[0],
+      tags: ['newly-added'],
+      thumbnailUrl: 'https://via.placeholder.com/300x200.png?text=New+Solution',
+      previewDescription: 'A brief preview of this new solution.',
+    };
+    setSolutions(prev => [newSolution, ...prev]);
+  };
+
+  const handleUpdateSolution = (updated: Solution) => {
+    setSolutions(prev => prev.map(s => s.id === updated.id ? updated : s));
+  };
+
+  const handleDeleteSolution = (id: string) => {
+    setSolutions(prev => prev.filter(s => s.id !== id));
+  };
+
   const [typedBioTitle, setTypedBioTitle] = useState('');
   const [typedServicesTitle, setTypedServicesTitle] = useState('');
   const [typedProjectsTitle, setTypedProjectsTitle] = useState('');
@@ -247,7 +280,12 @@ export function HeroNavigation({
 
         {/* Workshop Content Body */}
         <div className="p-4">
-          <SolutionWorkshop />
+          <SolutionWorkshop
+            solutions={solutions}
+            onAddSolution={handleAddSolution}
+            onUpdateSolution={handleUpdateSolution}
+            onDeleteSolution={handleDeleteSolution}
+          />
         </div>
       </BottomSheet>
 

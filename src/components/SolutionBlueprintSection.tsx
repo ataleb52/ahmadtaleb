@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Container } from './ui/container';
 import { cn } from '@/lib/utils';
-import { SolutionBlueprint } from './KanbanPortfolio';
+import { SolutionBlueprint } from './SolutionWorkshop';
 import { motion } from 'framer-motion';
 
 export function SolutionBlueprintSection({ 

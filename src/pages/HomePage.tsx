@@ -9,6 +9,8 @@ import { StartupSwissArmySection } from '@/components/StartupSwissArmySection';
 import { CorporateDiagnosticSection } from '@/components/CorporateDiagnosticSection';
 
 import { TerminalBioSection } from '@/components/TerminalBioSection'; // Import the new component
+import { SolutionWorkshop } from '@/components/SolutionWorkshop';
+import portfolioItems from '@/data/portfolio-items.json';
 import '@/styles/animations.css'; // Import animations
 
 export default function HomePage() {
@@ -106,7 +108,7 @@ export default function HomePage() {
       <section id="projects" className="bg-gray-900">
         <Container padded="lg">
           <h2 className="text-3xl font-bold text-yellow-300 mb-8">What I'm working on</h2>
-          {/* Projects content */}
+          <SolutionWorkshop solutions={portfolioItems as import('@/types/solution').Solution[]} />
         </Container>
       </section>
       
