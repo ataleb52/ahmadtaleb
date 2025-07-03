@@ -45,17 +45,22 @@ function LoadingSpinner() {
 }
 
 export function SolutionWorkshop({
-  solutions,
+  solutions = [],
   onAddSolution,
   onUpdateSolution,
   onDeleteSolution
 }: {
-  solutions: Solution[];
-  onAddSolution: () => void;
-  onUpdateSolution: (solution: Solution) => void;
-  onDeleteSolution: (id: string) => void;
+  solutions?: Solution[];
+  onAddSolution?: () => void;
+  onUpdateSolution?: (solution: Solution) => void;
+  onDeleteSolution?: (id: string) => void;
 }) {
+  if (!Array.isArray(solutions)) {
+    return <div className="text-red-500 p-4">No solutions provided to SolutionWorkshop.</div>;
+  }
+
   const [activeSolution, setActiveSolution] = useState<Solution | null>(null);
+  const [editingSolution, setEditingSolution] = useState<Solution | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [activeArea, setActiveArea] = useState<'blueprint' | 'workbench' | 'showcase' | null>(null);
@@ -189,7 +194,7 @@ export function SolutionWorkshop({
             count={solutions.filter(s=>s.status === 'blueprint').length} 
             onClick={() => { setActiveArea('blueprint'); setFilterTag(null); }} 
             color="amber"
-            icon={<PenTool size={12}/>}
+            icon={<PenTool size={12}/>} 
             ariaLabel="Show blueprint solutions"
             selected={activeArea === 'blueprint'}
           />
@@ -198,7 +203,7 @@ export function SolutionWorkshop({
             count={solutions.filter(s=>s.status === 'workbench').length} 
             onClick={() => { setActiveArea('workbench'); setFilterTag(null); }} 
             color="blueprint"
-            icon={<Wrench size={12}/>}
+            icon={<Wrench size={12}/>} 
             ariaLabel="Show workbench solutions"
             selected={activeArea === 'workbench'}
           />
@@ -207,18 +212,28 @@ export function SolutionWorkshop({
             count={solutions.filter(s=>s.status === 'showcase').length} 
             onClick={() => { setActiveArea('showcase'); setFilterTag(null); }} 
             color="emerald"
-            icon={<CheckCircle size={12}/>}
+            icon={<CheckCircle size={12}/>} 
             ariaLabel="Show showcase solutions"
             selected={activeArea === 'showcase'}
           />
         </div>
-        <button 
-          onClick={toggleViewMode}
-          className="px-3 py-1.5 text-xs bg-gray-700/50 hover:bg-gray-700/80 rounded-md flex items-center gap-1.5"
-        >
-          {viewMode === 'workshop' ? <ListTodo size={14}/> : <LayoutGrid size={14}/>} 
-          {viewMode === 'workshop' ? 'List View' : 'Workshop View'}
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={toggleViewMode}
+            className="px-3 py-1.5 text-xs bg-gray-700/50 hover:bg-gray-700/80 rounded-md flex items-center gap-1.5"
+          >
+            {viewMode === 'workshop' ? <ListTodo size={14}/> : <LayoutGrid size={14}/>} 
+            {viewMode === 'workshop' ? 'List View' : 'Workshop View'}
+          </button>
+          {onAddSolution && (
+            <button
+              onClick={onAddSolution}
+              className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 rounded-md text-white flex items-center gap-1.5"
+            >
+              + Add Solution
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Content Area - ensure it's above the gradient */}
@@ -233,15 +248,42 @@ export function SolutionWorkshop({
           >
             <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
               <h3 className="text-amber-400 font-semibold mb-2 text-center">Blueprint ({blueprintSolutions.length})</h3>
-              {blueprintSolutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => setActiveSolution(s)} />)}
+              {blueprintSolutions.map(s => (
+                <SolutionCard 
+                  key={s.id} 
+                  solution={s} 
+                  onClick={() => setActiveSolution(s)}
+                  onEdit={onUpdateSolution ? () => setEditingSolution(s) : undefined}
+                  onDelete={onDeleteSolution ? () => onDeleteSolution(s.id) : undefined}
+                  editable={!!onUpdateSolution || !!onDeleteSolution}
+                />
+              ))}
             </div>
             <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
               <h3 className="text-blueprint font-semibold mb-2 text-center">Workbench ({workbenchSolutions.length})</h3>
-              {workbenchSolutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => setActiveSolution(s)} />)}
+              {workbenchSolutions.map(s => (
+                <SolutionCard 
+                  key={s.id} 
+                  solution={s} 
+                  onClick={() => setActiveSolution(s)}
+                  onEdit={onUpdateSolution ? () => setEditingSolution(s) : undefined}
+                  onDelete={onDeleteSolution ? () => onDeleteSolution(s.id) : undefined}
+                  editable={!!onUpdateSolution || !!onDeleteSolution}
+                />
+              ))}
             </div>
             <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
               <h3 className="text-emerald-400 font-semibold mb-2 text-center">Showcase ({showcaseSolutions.length})</h3>
-              {showcaseSolutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => setActiveSolution(s)} />)}
+              {showcaseSolutions.map(s => (
+                <SolutionCard 
+                  key={s.id} 
+                  solution={s} 
+                  onClick={() => setActiveSolution(s)}
+                  onEdit={onUpdateSolution ? () => setEditingSolution(s) : undefined}
+                  onDelete={onDeleteSolution ? () => onDeleteSolution(s.id) : undefined}
+                  editable={!!onUpdateSolution || !!onDeleteSolution}
+                />
+              ))}
             </div>
           </motion.div>
         ) : (
@@ -252,8 +294,28 @@ export function SolutionWorkshop({
             exit={{ opacity: 0 }}
             className="relative z-10 flex-grow overflow-y-auto p-2 bg-gray-900/30 backdrop-blur-xs rounded-lg border border-gray-700/50"
           >
-            <ListView solutions={filteredSolutions} onSelectSolution={setActiveSolution} />
+            <ListView 
+              solutions={filteredSolutions} 
+              onSelectSolution={setActiveSolution} 
+              onEdit={onUpdateSolution ? (s) => setEditingSolution(s) : undefined}
+              onDelete={onDeleteSolution ? (id) => onDeleteSolution(id) : undefined}
+              editable={!!onUpdateSolution || !!onDeleteSolution}
+            />
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {editingSolution && (
+          <EditSolutionModal 
+            solution={editingSolution}
+            onSave={updated => {
+              onUpdateSolution && onUpdateSolution(updated);
+              setEditingSolution(null);
+            }}
+            onCancel={() => setEditingSolution(null)}
+          />
         )}
       </AnimatePresence>
 
@@ -265,6 +327,9 @@ export function SolutionWorkshop({
             relatedSolutions={getRelatedSolutions(activeSolution.id)}
             onClose={() => setActiveSolution(null)} 
             onSelectRelated={setActiveSolution}
+            onEdit={onUpdateSolution ? () => { setEditingSolution(activeSolution); setActiveSolution(null); } : undefined}
+            onDelete={onDeleteSolution ? () => { onDeleteSolution(activeSolution.id); setActiveSolution(null); } : undefined}
+            editable={!!onUpdateSolution || !!onDeleteSolution}
           />
         )}
       </AnimatePresence>
@@ -275,10 +340,16 @@ export function SolutionWorkshop({
 // Enhanced SolutionCard component with animations and better visuals
 function SolutionCard({ 
   solution, 
-  onClick 
+  onClick,
+  onEdit,
+  onDelete,
+  editable
 }: { 
   solution: Solution, 
-  onClick: () => void 
+  onClick: () => void,
+  onEdit?: () => void,
+  onDelete?: () => void,
+  editable?: boolean
 }) {
   const statusColorMap = {
     blueprint: 'amber',
@@ -291,27 +362,47 @@ function SolutionCard({
     <motion.div 
       whileHover={{ y: -2, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      onClick={onClick} 
-      className={`p-3 mb-3 bg-gray-800/50 hover:bg-gray-800/80 rounded-md border border-gray-700 hover:border-${statusColor}-500/50 cursor-pointer shadow-sm hover:shadow transition-all duration-200 overflow-hidden group`}
+      className={`p-3 mb-3 bg-gray-800/50 hover:bg-gray-800/80 rounded-md border border-gray-700 hover:border-${statusColor}-500/50 cursor-pointer shadow-sm hover:shadow transition-all duration-200 overflow-hidden group relative`}
+      onClick={onClick}
     >
+      {/* Edit/Delete buttons */}
+      {editable && (
+        <div className="absolute top-2 right-2 flex gap-1 z-20">
+          {onEdit && (
+            <button
+              className="p-1 rounded hover:bg-blue-600/80 text-xs text-blue-200 bg-gray-800/80"
+              onClick={e => { e.stopPropagation(); onEdit(); }}
+              title="Edit"
+            >
+              ✎
+            </button>
+          )}
+          {onDelete && (
+            <button
+              className="p-1 rounded hover:bg-red-600/80 text-xs text-red-200 bg-gray-800/80"
+              onClick={e => { e.stopPropagation(); onDelete(); }}
+              title="Delete"
+            >
+              🗑
+            </button>
+          )}
+        </div>
+      )}
       {/* Title and Status Indicator */}
       <div className="flex items-start justify-between mb-1">
         <h4 className="font-semibold text-white group-hover:text-white transition-colors duration-200">{solution.title}</h4>
         <div className={`flex-shrink-0 w-2 h-2 rounded-full bg-${statusColor}-500 mt-1.5`}></div>
       </div>
-      
       {/* Description or Preview Description */}
       <p className="text-xs text-gray-400 mb-2 line-clamp-2 group-hover:text-gray-300 transition-colors duration-200">
         {solution.previewDescription || solution.description.substring(0, 100) + (solution.description.length > 100 ? '...' : '')}
       </p>
-      
       {/* Thumbnail if available */}
       {solution.thumbnailUrl && (
         <div className="mb-2 h-24 overflow-hidden rounded bg-gray-900 relative">
           <img src={solution.thumbnailUrl} alt={solution.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-200" />
         </div>
       )}
-      
       {/* Progress for workbench items */}
       {solution.status === 'workbench' && (
         <div className="mb-2">
@@ -324,7 +415,6 @@ function SolutionCard({
           </div>
         </div>
       )}
-      
       {/* Tags */}
       {solution.tags && solution.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
@@ -336,7 +426,6 @@ function SolutionCard({
           )}
         </div>
       )}
-      
       {/* Call to Action */}
       <div className={`mt-2 text-xs text-${statusColor}-400 font-medium flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
         View details <ChevronRight size={14} className="ml-1" />
@@ -345,32 +434,53 @@ function SolutionCard({
   );
 }
 
-// Enhanced ListView with better visuals
+// Enhanced ListView with edit/delete support
 function ListView({ 
   solutions, 
-  onSelectSolution 
+  onSelectSolution,
+  onEdit,
+  onDelete,
+  editable
 }: { 
   solutions: Solution[],
-  onSelectSolution: (solution: Solution) => void
+  onSelectSolution: (solution: Solution) => void,
+  onEdit?: (solution: Solution) => void,
+  onDelete?: (id: string) => void,
+  editable?: boolean
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {solutions.map(s => <SolutionCard key={s.id} solution={s} onClick={() => onSelectSolution(s)} />)}
+      {solutions.map(s => (
+        <SolutionCard 
+          key={s.id} 
+          solution={s} 
+          onClick={() => onSelectSolution(s)}
+          onEdit={onEdit ? () => onEdit(s) : undefined}
+          onDelete={onDelete ? () => onDelete(s.id) : undefined}
+          editable={editable}
+        />
+      ))}
     </div>
   );
 }
 
-// Enhanced SolutionDetail Modal with dynamic component loading
+// Enhanced SolutionDetail Modal with edit/delete support
 function SolutionDetail({
   solution,
   relatedSolutions,
   onClose,
-  onSelectRelated
+  onSelectRelated,
+  onEdit,
+  onDelete,
+  editable
 }: {
   solution: Solution;
   relatedSolutions: Solution[];
   onClose: () => void;
   onSelectRelated: (solution: Solution) => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  editable?: boolean;
 }) {
   // Determine which component to render based on detailComponentId
   const DetailComponent = solution.detailComponentId && 
@@ -412,18 +522,23 @@ function SolutionDetail({
       >
         {/* Header */}
         <div className="p-4 border-b border-gray-700 flex justify-between items-start">
-          <div>
-            <h3 className="text-xl font-semibold text-white mb-1">{solution.title}</h3>
-            <div className="flex items-center gap-2">
-              <span className={`text-xs px-2 py-0.5 rounded-full bg-${statusColor}-500/20 text-${statusColor}-400 flex items-center gap-1`}>
-                {statusIcon} {statusLabel}
-              </span>
-              {solution.date && (
-                <span className="text-xs text-gray-500 flex items-center">
-                  <Clock size={12} className="mr-1" /> {solution.date}
-                </span>
-              )}
-            </div>
+          <div className="flex gap-2">
+            {editable && onEdit && (
+              <button
+                onClick={onEdit}
+                className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded-md text-white"
+              >
+                Edit
+              </button>
+            )}
+            {editable && onDelete && (
+              <button
+                onClick={onDelete}
+                className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 rounded-md text-white"
+              >
+                Delete
+              </button>
+            )}
           </div>
           <button 
             onClick={onClose}
@@ -432,39 +547,11 @@ function SolutionDetail({
             <X size={18} />
           </button>
         </div>
-        
-        {/* Content Area */}
         <div className="flex-grow overflow-y-auto p-5">
           <Suspense fallback={<LoadingSpinner />}>
             <DetailComponent solution={solution} />
           </Suspense>
-          
-          {/* Related Items */}
-          {relatedSolutions.length > 0 && (
-            <div className="mt-8 pt-6 border-t border-gray-700/50">
-              <h4 className="text-md font-semibold mb-3 text-gray-300">Related Solutions:</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {relatedSolutions.map(rs => (
-                  <div 
-                    key={rs.id}
-                    onClick={() => onSelectRelated(rs)}
-                    className={`p-3 rounded-md border border-gray-700 bg-gray-800/30 hover:bg-gray-800/80 cursor-pointer hover:border-${getStatusColor(rs.status)}-500/50 transition-colors`}
-                  >
-                    <div className="flex items-start">
-                      <div className={`mr-2 mt-1 w-2 h-2 rounded-full bg-${getStatusColor(rs.status)}-500 flex-shrink-0`}></div>
-                      <div>
-                        <h5 className="font-medium text-sm text-gray-200">{rs.title}</h5>
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{rs.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
-        
-        {/* Footer with actions */}
         <div className="p-4 border-t border-gray-700 flex justify-between items-center">
           <button 
             onClick={onClose}
@@ -472,21 +559,100 @@ function SolutionDetail({
           >
             Close
           </button>
-          
           {solution.link && (
-            <a 
-              href={solution.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`px-3 py-1.5 text-sm bg-${statusColor}-500/20 hover:bg-${statusColor}-500/30 text-${statusColor}-400 hover:text-${statusColor}-300 rounded-md flex items-center`}
-            >
-              View Case Study <ExternalLink size={14} className="ml-1.5" />
-            </a>
+            <a href={solution.link} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-sm bg-blue-700 hover:bg-blue-800 rounded-md text-white ml-2">View Link</a>
           )}
         </div>
       </motion.div>
     </motion.div>
   );
+}
+
+// Edit Solution Modal (basic form)
+function EditSolutionModal({
+  solution,
+  onSave,
+  onCancel
+}: {
+  solution: Solution;
+  onSave: (updated: Solution) => void;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState<Solution>({ ...solution });
+  // List of available detail components
+  const detailComponentOptions = [
+    { value: '', label: 'Generic (Default)' },
+    { value: 'GenericDetailView', label: 'GenericDetailView' },
+    { value: 'CustomerInsightsShowcase', label: 'CustomerInsightsShowcase' },
+    { value: 'LegacySystemsShowcase', label: 'LegacySystemsShowcase' },
+    { value: 'PortfolioSystemShowcase', label: 'PortfolioSystemShowcase' },
+    // Add more as you create new detail components
+  ];
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      onClick={onCancel}
+    >
+      <motion.form 
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+        transition={{ type: 'spring', duration: 0.5 }}
+        className="bg-gray-900 rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto flex flex-col p-6 gap-3"
+        onClick={e => e.stopPropagation()}
+        onSubmit={e => { e.preventDefault(); onSave(form); }}
+      >
+        <h2 className="text-lg font-semibold mb-2">Edit Solution</h2>
+        <label className="text-xs font-semibold">Title
+          <input className="w-full p-2 mt-1 mb-2 rounded bg-gray-800 border border-gray-700 text-gray-100" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+        </label>
+        <label className="text-xs font-semibold">Description
+          <textarea className="w-full p-2 mt-1 mb-2 rounded bg-gray-800 border border-gray-700 text-gray-100" rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+        </label>
+        <label className="text-xs font-semibold">Impact
+          <input className="w-full p-2 mt-1 mb-2 rounded bg-gray-800 border border-gray-700 text-gray-100" value={form.impact} onChange={e => setForm(f => ({ ...f, impact: e.target.value }))} />
+        </label>
+        <label className="text-xs font-semibold">Status
+          <select className="w-full p-2 mt-1 mb-2 rounded bg-gray-800 border border-gray-700 text-gray-100" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Solution['status'] }))}>
+            <option value="blueprint">Blueprint</option>
+            <option value="workbench">Workbench</option>
+            <option value="showcase">Showcase</option>
+          </select>
+        </label>
+        <label className="text-xs font-semibold">Progress
+          <input type="number" min={0} max={100} className="w-full p-2 mt-1 mb-2 rounded bg-gray-800 border border-gray-700 text-gray-100" value={form.progress} onChange={e => setForm(f => ({ ...f, progress: Number(e.target.value) }))} />
+        </label>
+        <label className="text-xs font-semibold">Tags (comma separated)
+          <input className="w-full p-2 mt-1 mb-2 rounded bg-gray-800 border border-gray-700 text-gray-100" value={form.tags.join(', ')} onChange={e => setForm(f => ({ ...f, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))} />
+        </label>
+        <label className="text-xs font-semibold">Thumbnail URL
+          <input className="w-full p-2 mt-1 mb-2 rounded bg-gray-800 border border-gray-700 text-gray-100" value={form.thumbnailUrl || ''} onChange={e => setForm(f => ({ ...f, thumbnailUrl: e.target.value }))} />
+        </label>
+        <label className="text-xs font-semibold">Preview Description
+          <input className="w-full p-2 mt-1 mb-2 rounded bg-gray-800 border border-gray-700 text-gray-100" value={form.previewDescription || ''} onChange={e => setForm(f => ({ ...f, previewDescription: e.target.value }))} />
+        </label>
+        <label className="text-xs font-semibold">Detail View Layout
+          <select
+            className="w-full p-2 mt-1 mb-2 rounded bg-gray-800 border border-gray-700 text-gray-100"
+            value={form.detailComponentId || ''}
+            onChange={e => setForm(f => ({ ...f, detailComponentId: e.target.value || undefined }))}
+          >
+            {detailComponentOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </label>
+        <div className="flex gap-2 justify-end mt-2">
+          <button type="button" onClick={onCancel} className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-md text-gray-200">Cancel</button>
+          <button type="submit" className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 rounded-md text-white">Save</button>
+        </div>
+      </motion.form>
+    </motion.div>
+  );
+// ...existing code...
 }
 
 // Filter button component 

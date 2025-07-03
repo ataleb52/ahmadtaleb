@@ -10,6 +10,8 @@ import { CorporateDiagnosticSection } from '@/components/CorporateDiagnosticSect
 
 import { TerminalBioSection } from '@/components/TerminalBioSection'; // Import the new component
 import '@/styles/animations.css'; // Import animations
+import { SolutionWorkshop } from '@/components/KanbanPortfolio';
+import initialPortfolioItems from '../data/portfolio-items.json';
 
 export default function HomePage() {
   const [heroAnimationsComplete, setHeroAnimationsComplete] = useState(false);
@@ -67,7 +69,7 @@ export default function HomePage() {
       {/* Solutions Section */}
       <section id="solutions" className="bg-white">
         <Container>
-          <SolutionBlueprintSection isReady={heroAnimationsComplete} />
+          <SolutionWorkshop solutions={initialPortfolioItems} />
         </Container>
       </section>
       
