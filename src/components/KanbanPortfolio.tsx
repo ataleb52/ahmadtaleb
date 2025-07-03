@@ -44,7 +44,17 @@ function LoadingSpinner() {
   );
 }
 
-export function SolutionWorkshop() {
+export function SolutionWorkshop({
+  solutions,
+  onAddSolution,
+  onUpdateSolution,
+  onDeleteSolution
+}: {
+  solutions: Solution[];
+  onAddSolution: () => void;
+  onUpdateSolution: (solution: Solution) => void;
+  onDeleteSolution: (id: string) => void;
+}) {
   const [activeSolution, setActiveSolution] = useState<Solution | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string | null>(null);
@@ -95,84 +105,6 @@ export function SolutionWorkshop() {
     };
   }, [mouseX, mouseY, workshopRef]); // Added workshopRef to dependencies, as its current value affects effect setup.
 
-  const solutions: Solution[] = [
-    {
-      id: 'blueprint-1',
-      title: 'Legacy System Dependencies',
-      description: 'Organizations stuck with 15+ year old infrastructure that slows innovation',
-      impact: 'Will enable faster deployments and reduce maintenance costs by 60%',
-      status: 'blueprint',
-      progress: 0,
-      tags: ['Legacy Systems', 'Architecture'],
-      relatedSolutions: ['workbench-2', 'showcase-1'],
-      detailComponentId: 'LegacySystemsShowcase',
-      thumbnailUrl: '/images/legacy-systems-thumb.jpg',
-      previewDescription: 'A systematic approach to modernizing outdated but critical infrastructure while minimizing business disruption'
-    },
-    {
-      id: 'blueprint-2',
-      title: 'Customer Behavior Blind Spots',
-      description: 'Companies missing key insights into customer decision-making patterns',
-      impact: 'Will surface hidden opportunities and reduce customer acquisition costs',
-      status: 'blueprint',
-      progress: 0,
-      tags: ['Analytics', 'Customer Experience'],
-      detailComponentId: 'CustomerInsightsShowcase',
-      thumbnailUrl: '/images/customer-insights-thumb.jpg',
-      previewDescription: 'Uncovering hidden patterns in customer behavior to drive more effective marketing and product decisions'
-    },
-    {
-      id: 'workbench-1',
-      title: 'Portfolio Communication Clarity',
-      description: 'Showcasing problem-solving approach in a memorable, effective way',
-      impact: 'This very site—creating a system to demonstrate how I think',
-      status: 'workbench',
-      progress: 75,
-      tags: ['Personal Brand', 'UX Design'],
-      link: '#',
-      relatedSolutions: ['showcase-2'],
-      detailComponentId: 'PortfolioSystemShowcase',
-      thumbnailUrl: '/images/portfolio-system-thumb.jpg',
-      previewDescription: 'Meta-project: This very portfolio system that showcases my approach to problem-solving through interactive design'
-    },
-    {
-      id: 'workbench-2',
-      title: 'Cross-Department Data Silos',
-      description: 'Isolated systems preventing consolidated business intelligence',
-      impact: 'Reducing manual entry by 70% across 5 departments',
-      status: 'workbench',
-      progress: 40,
-      tags: ['Data Integration', 'Business Intelligence'],
-      relatedSolutions: ['blueprint-1', 'showcase-1'],
-      previewDescription: 'Breaking down organizational data barriers to enable unified business intelligence and decision-making'
-    },
-    {
-      id: 'showcase-1',
-      title: 'E-commerce System Fragmentation',
-      description: 'Multiple disconnected tools causing order delays and inventory errors',
-      impact: 'Reduced operational overhead by 40% and eliminated order delays',
-      status: 'showcase',
-      progress: 100,
-      date: 'Q4 2023',
-      tags: ['E-commerce', 'Systems Integration'],
-      link: '/case-studies/ecommerce',
-      relatedSolutions: ['workbench-2', 'blueprint-1'],
-      previewDescription: 'An end-to-end e-commerce solution that eliminated inventory discrepancies and streamlined the order process'
-    },
-    {
-      id: 'showcase-2',
-      title: 'Manual Fulfillment Bottlenecks',
-      description: 'Order processing delays impacting customer satisfaction',
-      impact: 'Cut processing time from 3 days to 4 hours',
-      status: 'showcase',
-      progress: 100,
-      date: 'Q2 2023',
-      tags: ['Operations', 'Workflow Automation'],
-      link: '/case-studies/fulfillment',
-      relatedSolutions: ['workbench-1'],
-      previewDescription: 'A workflow automation solution that dramatically reduced order fulfillment times and improved customer satisfaction'
-    }
-  ];
 
   const filteredSolutions = solutions.filter(solution => 
     (solution.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -837,3 +769,83 @@ function MobileSolutionCard({ solution, onClick }: { solution: Solution; onClick
     </motion.div>
   );
 }
+
+// Default example solutions for fallback/demo
+export const exampleSolutions: Solution[] = [
+  {
+    id: 'blueprint-1',
+    title: 'Legacy System Dependencies',
+    description: 'Organizations stuck with 15+ year old infrastructure that slows innovation',
+    impact: 'Will enable faster deployments and reduce maintenance costs by 60%',
+    status: 'blueprint',
+    progress: 0,
+    tags: ['Legacy Systems', 'Architecture'],
+    relatedSolutions: ['workbench-2', 'showcase-1'],
+    detailComponentId: 'LegacySystemsShowcase',
+    thumbnailUrl: '/images/legacy-systems-thumb.jpg',
+    previewDescription: 'A systematic approach to modernizing outdated but critical infrastructure while minimizing business disruption'
+  },
+  {
+    id: 'blueprint-2',
+    title: 'Customer Behavior Blind Spots',
+    description: 'Companies missing key insights into customer decision-making patterns',
+    impact: 'Will surface hidden opportunities and reduce customer acquisition costs',
+    status: 'blueprint',
+    progress: 0,
+    tags: ['Analytics', 'Customer Experience'],
+    detailComponentId: 'CustomerInsightsShowcase',
+    thumbnailUrl: '/images/customer-insights-thumb.jpg',
+    previewDescription: 'Uncovering hidden patterns in customer behavior to drive more effective marketing and product decisions'
+  },
+  {
+    id: 'workbench-1',
+    title: 'Portfolio Communication Clarity',
+    description: 'Showcasing problem-solving approach in a memorable, effective way',
+    impact: 'This very site—creating a system to demonstrate how I think',
+    status: 'workbench',
+    progress: 75,
+    tags: ['Personal Brand', 'UX Design'],
+    link: '#',
+    relatedSolutions: ['showcase-2'],
+    detailComponentId: 'PortfolioSystemShowcase',
+    thumbnailUrl: '/images/portfolio-system-thumb.jpg',
+    previewDescription: 'Meta-project: This very portfolio system that showcases my approach to problem-solving through interactive design'
+  },
+  {
+    id: 'workbench-2',
+    title: 'Cross-Department Data Silos',
+    description: 'Isolated systems preventing consolidated business intelligence',
+    impact: 'Reducing manual entry by 70% across 5 departments',
+    status: 'workbench',
+    progress: 40,
+    tags: ['Data Integration', 'Business Intelligence'],
+    relatedSolutions: ['blueprint-1', 'showcase-1'],
+    previewDescription: 'Breaking down organizational data barriers to enable unified business intelligence and decision-making'
+  },
+  {
+    id: 'showcase-1',
+    title: 'E-commerce System Fragmentation',
+    description: 'Multiple disconnected tools causing order delays and inventory errors',
+    impact: 'Reduced operational overhead by 40% and eliminated order delays',
+    status: 'showcase',
+    progress: 100,
+    date: 'Q4 2023',
+    tags: ['E-commerce', 'Systems Integration'],
+    link: '/case-studies/ecommerce',
+    relatedSolutions: ['workbench-2', 'blueprint-1'],
+    previewDescription: 'An end-to-end e-commerce solution that eliminated inventory discrepancies and streamlined the order process'
+  },
+  {
+    id: 'showcase-2',
+    title: 'Manual Fulfillment Bottlenecks',
+    description: 'Order processing delays impacting customer satisfaction',
+    impact: 'Cut processing time from 3 days to 4 hours',
+    status: 'showcase',
+    progress: 100,
+    date: 'Q2 2023',
+    tags: ['Operations', 'Workflow Automation'],
+    link: '/case-studies/fulfillment',
+    relatedSolutions: ['workbench-1'],
+    previewDescription: 'A workflow automation solution that dramatically reduced order fulfillment times and improved customer satisfaction'
+  }
+];

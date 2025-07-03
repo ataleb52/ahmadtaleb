@@ -3,6 +3,7 @@ import { MainLayout } from '@/layouts/MainLayout';
 import { DesignSystemLayout } from '@/layouts/DesignSystemLayout';
 import HomePage from '@/pages/HomePage';
 import AboutPage from '@/pages/AboutPage';
+import PortfolioEditorPage from '@/pages/PortfolioEditorPage';
 
 // Design System pages
 import { OverviewPage } from '@/pages/dev/OverviewPage';
@@ -22,7 +23,7 @@ function App() {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
-          
+          <Route path="portfolio-editor" element={<PortfolioEditorPage />} />
           {/* Catch-all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
