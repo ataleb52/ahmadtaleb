@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+// import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { motion, useMotionValue, AnimatePresence, useMotionTemplate, useSpring } from 'framer-motion';
 import { PenTool, Wrench, CheckCircle, Search, Filter, X, Clock, LayoutGrid, ListTodo, ExternalLink, ChevronRight } from 'lucide-react';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import { cn } from '@/lib/utils';
 
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 // Solution type definition with new fields
 export type Solution = {
   id: string;
@@ -160,150 +161,374 @@ export function SolutionWorkshop({
     );
   }
 
-  // DESKTOP VIEW JSX 
+  // REFINED BOARD LAYOUT FOR PORTFOLIO/WORKBENCH/BLUEPRINT
   return (
-    <div ref={workshopRef} className="p-1 bg-gray-950 relative overflow-hidden font-mono text-sm text-gray-300 h-[calc(100vh-200px)] max-h-[700px] flex flex-col select-none">
-      <motion.div
-        className="absolute inset-0 z-0 pointer-events-none" 
-        style={{
-          background: gradientBackground, // Use the unconditionally defined MotionValue
-        }}
+    <div ref={workshopRef} className="relative flex flex-col h-[calc(100vh-120px)] max-h-[700px] bg-gradient-to-br from-slate-50 to-slate-100 font-sans text-sm select-none overflow-hidden">
+      <motion.div 
+        className="absolute inset-0 pointer-events-none z-0 opacity-30"
+        style={{ background: gradientBackground }}
       />
-      {/* Header - ensure it's above the gradient */}
-      <div className="relative z-10 flex items-center justify-between p-3 border-b border-gray-700/50 mb-2 bg-gray-900/50 backdrop-blur-sm">
+      
+      {/* Board Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white/90 z-10 backdrop-blur-sm shadow-sm">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold text-slate-800 tracking-tight">Portfolio Journey</h2>
+          <div className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-50 via-blue-50 to-emerald-50 rounded-full border border-slate-200 shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-50"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+            </span>
+            <span className="text-xs text-slate-600 font-medium px-1">Ideas</span>
+            <span className="text-xs text-slate-400">→</span>
+            <span className="text-xs text-slate-600 font-medium px-1">Focus</span>
+            <span className="text-xs text-slate-400">→</span>
+            <span className="text-xs text-slate-600 font-medium px-1">Portfolio</span>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search size={16} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" />
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={16} className="text-slate-400" />
+            </div>
             <input 
               type="text" 
-              placeholder="Search solutions..."
+              placeholder="Search items..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-2 py-1.5 text-xs bg-gray-800/70 border border-gray-700 rounded-md focus:ring-1 focus:ring-blueprint focus:border-blueprint w-48"
+              className="pl-10 pr-3 py-2 w-56 text-sm bg-white border border-slate-200 rounded-full shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all duration-200"
             />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
-          <FilterButton 
-            label="All" 
-            count={solutions.length} 
-            onClick={() => { setActiveArea(null); setFilterTag(null); }} 
-            ariaLabel="Show all solutions"
-            selected={!activeArea && !filterTag}
-          />
-          <FilterButton 
-            label="Blueprint" 
-            count={solutions.filter(s=>s.status === 'blueprint').length} 
-            onClick={() => { setActiveArea('blueprint'); setFilterTag(null); }} 
-            color="amber"
-            icon={<PenTool size={12}/>} 
-            ariaLabel="Show blueprint solutions"
-            selected={activeArea === 'blueprint'}
-          />
-          <FilterButton 
-            label="Workbench" 
-            count={solutions.filter(s=>s.status === 'workbench').length} 
-            onClick={() => { setActiveArea('workbench'); setFilterTag(null); }} 
-            color="blueprint"
-            icon={<Wrench size={12}/>} 
-            ariaLabel="Show workbench solutions"
-            selected={activeArea === 'workbench'}
-          />
-          <FilterButton 
-            label="Showcase" 
-            count={solutions.filter(s=>s.status === 'showcase').length} 
-            onClick={() => { setActiveArea('showcase'); setFilterTag(null); }} 
-            color="emerald"
-            icon={<CheckCircle size={12}/>} 
-            ariaLabel="Show showcase solutions"
-            selected={activeArea === 'showcase'}
-          />
-        </div>
-        <div className="flex gap-2">
-          <button 
-            onClick={toggleViewMode}
-            className="px-3 py-1.5 text-xs bg-gray-700/50 hover:bg-gray-700/80 rounded-md flex items-center gap-1.5"
-          >
-            {viewMode === 'workshop' ? <ListTodo size={14}/> : <LayoutGrid size={14}/>} 
-            {viewMode === 'workshop' ? 'List View' : 'Workshop View'}
-          </button>
-          {onAddSolution && (
-            <button
-              onClick={onAddSolution}
-              className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 rounded-md text-white flex items-center gap-1.5"
+          
+          {filterTag && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100 shadow-sm"
             >
-              + Add Solution
+              <span className="text-xs text-blue-700 font-medium">Tag:</span>
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{filterTag}</span>
+              <button
+                onClick={() => setFilterTag(null)}
+                className="ml-1 text-blue-500 hover:text-blue-700 transition-colors"
+                title="Clear filter"
+              >
+                <X size={14} />
+              </button>
+            </motion.div>
+          )}
+          
+          <motion.div 
+            className="relative"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <button
+              onClick={() => {}}
+              className="px-3 py-2 text-sm rounded-full bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-all duration-200 flex items-center gap-2"
+              title="Filter by tags"
+            >
+              <Filter size={14} className="text-slate-500" />
+              <span className="hidden md:inline text-slate-600 font-medium">Filter</span>
             </button>
+            {/* Tag filter dropdown would go here */}
+          </motion.div>
+          
+          {onAddSolution && (
+            <motion.button
+              onClick={onAddSolution}
+              className="ml-2 px-4 py-2 text-sm bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-full text-white font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="text-white font-bold">+</span> New Item
+            </motion.button>
           )}
         </div>
       </div>
 
-      {/* Main Content Area - ensure it's above the gradient */}
-      <AnimatePresence mode="wait">
-        {viewMode === 'workshop' ? (
-          <motion.div 
-            key="workshop"
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            className="relative z-10 flex-grow grid grid-cols-3 gap-3 overflow-hidden p-2"
-          >
-            <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
-              <h3 className="text-amber-400 font-semibold mb-2 text-center">Blueprint ({blueprintSolutions.length})</h3>
-              {blueprintSolutions.map(s => (
-                <SolutionCard 
-                  key={s.id} 
-                  solution={s} 
-                  onClick={() => setActiveSolution(s)}
-                  onEdit={onUpdateSolution ? () => setEditingSolution(s) : undefined}
-                  onDelete={onDeleteSolution ? () => onDeleteSolution(s.id) : undefined}
-                  editable={!!onUpdateSolution || !!onDeleteSolution}
-                />
-              ))}
+      {/* Current Focus - Shows the active work in progress */}
+      {workbenchSolutions.length > 0 && (
+        <div className="mx-6 mt-4 mb-2">
+          <div className="mb-3">
+            <div className="flex items-center">
+              <div className="w-1.5 h-6 rounded-full bg-blue-500 mr-2.5"></div>
+              <h3 className="text-slate-700 font-semibold text-sm">Current Focus</h3>
+              <div className="relative ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-md font-medium">
+                <span className="relative flex h-2 w-2 mr-1">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                In Progress
+              </div>
             </div>
-            <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
-              <h3 className="text-blueprint font-semibold mb-2 text-center">Workbench ({workbenchSolutions.length})</h3>
-              {workbenchSolutions.map(s => (
-                <SolutionCard 
-                  key={s.id} 
-                  solution={s} 
-                  onClick={() => setActiveSolution(s)}
-                  onEdit={onUpdateSolution ? () => setEditingSolution(s) : undefined}
-                  onDelete={onDeleteSolution ? () => onDeleteSolution(s.id) : undefined}
-                  editable={!!onUpdateSolution || !!onDeleteSolution}
-                />
-              ))}
+          </div>
+          
+          {/* Display only the first workbench solution */}
+          {workbenchSolutions.slice(0, 1).map(solution => (
+            <motion.div 
+              key={solution.id}
+              className="flex items-center bg-white border-l-4 border-l-blue-500 border border-blue-100 rounded-lg p-3 shadow-md hover:shadow-lg hover:bg-blue-50 transition-all cursor-pointer group"
+              onClick={() => setActiveSolution(solution)}
+              whileHover={{ 
+                y: -3,
+                transition: { duration: 0.2 }
+              }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 mr-4">
+                <Clock size={18} className="text-blue-600" />
+              </div>
+              
+              <div className="flex-grow min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-medium text-slate-800 text-base truncate">{solution.title}</h3>
+                  <div className="px-1.5 py-0.5 text-xs bg-blue-500 text-white rounded-md font-medium">{solution.progress}%</div>
+                </div>
+                
+                <p className="text-xs text-slate-500 mb-2 line-clamp-1">
+                  {solution.previewDescription || solution.description.substring(0, 100)}
+                </p>
+                
+                {/* Tags */}
+                {solution.tags && solution.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-1">
+                    {solution.tags.slice(0, 2).map(tag => (
+                      <span key={tag} className="px-2 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-600 border border-blue-200">{tag}</span>
+                    ))}
+                    {solution.tags.length > 2 && (
+                      <span className="px-2 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-600 border border-blue-200">+{solution.tags.length - 2}</span>
+                    )}
+                  </div>
+                )}
+                
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-1.5">
+                  <motion.div 
+                    className="bg-blue-500 h-full rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${solution.progress}%` }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  ></motion.div>
+                </div>
+              </div>
+              
+              {/* Controls */}
+              <div className="flex items-center gap-1.5 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                {onUpdateSolution && (
+                  <motion.button
+                    className="p-1.5 rounded-full hover:bg-blue-100 text-blue-600"
+                    onClick={e => { e.stopPropagation(); setEditingSolution(solution); }}
+                    title="Edit"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                      <path d="m15 5 4 4"></path>
+                    </svg>
+                  </motion.button>
+                )}
+                {onDeleteSolution && (
+                  <motion.button
+                    className="p-1.5 rounded-full hover:bg-red-100 text-red-600"
+                    onClick={e => { e.stopPropagation(); onDeleteSolution(solution.id); }}
+                    title="Delete"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18"></path>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                    </svg>
+                  </motion.button>
+                )}
+              </div>
+            </motion.div>
+          ))}
+          
+          {/* Show empty state if no current focus */}
+          {workbenchSolutions.length === 0 && (
+            <motion.div 
+              className="flex flex-col items-center justify-center bg-white/80 border border-dashed border-blue-200 rounded-lg p-5 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="w-12 h-12 mb-2 rounded-full bg-blue-50 flex items-center justify-center">
+                <Clock size={20} className="text-blue-400" />
+              </div>
+              <h3 className="text-slate-700 font-medium mb-1">No Current Focus</h3>
+              <p className="text-xs text-slate-500 max-w-xs">Move an item from your ideas backlog to start working on it</p>
+            </motion.div>
+          )}
+        </div>
+      )}
+
+      {/* Board Columns - Showcase (Portfolio) is visually emphasized */}
+      <div className="flex-1 w-full overflow-x-auto overflow-y-hidden">
+        <div className="flex flex-row gap-6 px-6 py-4 min-h-[400px] h-full" style={{ minWidth: 900 }}>
+          {/* Ideas & Backlog Column - minimal cards */}
+          <div className="flex flex-col w-64 min-w-[240px] max-w-[280px] bg-white rounded-xl shadow-md overflow-hidden border border-amber-100">
+            <div className="bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-3 border-b border-amber-200">
+              <div className="flex items-center gap-2">
+                <span className="p-1 bg-white/20 rounded">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                </span>
+                <span className="font-semibold text-white text-base">Ideas & Backlog</span>
+                <span className="text-xs bg-amber-300/30 text-white px-1.5 py-0.5 rounded-full">
+                  {blueprintSolutions.length}
+                </span>
+              </div>
+              <div className="text-xs text-amber-100 ml-7 -mt-0.5">Future concepts to explore</div>
             </div>
-            <div className="bg-gray-800/30 p-2 rounded-lg overflow-y-auto h-full border border-gray-700/50 backdrop-blur-xs">
-              <h3 className="text-emerald-400 font-semibold mb-2 text-center">Showcase ({showcaseSolutions.length})</h3>
-              {showcaseSolutions.map(s => (
-                <SolutionCard 
-                  key={s.id} 
-                  solution={s} 
-                  onClick={() => setActiveSolution(s)}
-                  onEdit={onUpdateSolution ? () => setEditingSolution(s) : undefined}
-                  onDelete={onDeleteSolution ? () => onDeleteSolution(s.id) : undefined}
-                  editable={!!onUpdateSolution || !!onDeleteSolution}
-                />
-              ))}
+            
+            <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
+              {blueprintSolutions.length === 0 ? (
+                <div className="text-center p-5 text-slate-400 bg-amber-50/30 rounded-lg border border-dashed border-amber-200 mx-2">
+                  <div className="flex flex-col items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-300 mb-2">
+                      <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"></path>
+                      <path d="M12 7c1-.56 2.78-2 5-2 .97 0 1.94.29 2.75.83"></path>
+                    </svg>
+                    <p className="text-sm">Capture your ideas here</p>
+                  </div>
+                </div>
+              ) : (
+                blueprintSolutions.map(s => (
+                  <IdeaCard
+                    key={s.id}
+                    solution={s}
+                    onClick={() => setActiveSolution(s)}
+                    onEdit={onUpdateSolution ? () => setEditingSolution(s) : undefined}
+                    onDelete={onDeleteSolution ? () => onDeleteSolution(s.id) : undefined}
+                    editable={!!onUpdateSolution || !!onDeleteSolution}
+                  />
+                ))
+              )}
             </div>
-          </motion.div>
-        ) : (
-          <motion.div 
-            key="list"
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }}
-            className="relative z-10 flex-grow overflow-y-auto p-2 bg-gray-900/30 backdrop-blur-xs rounded-lg border border-gray-700/50"
-          >
-            <ListView 
-              solutions={filteredSolutions} 
-              onSelectSolution={setActiveSolution} 
-              onEdit={onUpdateSolution ? (s) => setEditingSolution(s) : undefined}
-              onDelete={onDeleteSolution ? (id) => onDeleteSolution(id) : undefined}
-              editable={!!onUpdateSolution || !!onDeleteSolution}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+            
+            {onAddSolution && (
+              <motion.button
+                onClick={onAddSolution}
+                className="mx-3 mb-3 mt-1 px-3 py-2 w-auto bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm border border-amber-200 transition-colors duration-200"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14"></path>
+                  <path d="M5 12h14"></path>
+                </svg>
+                Add new idea
+              </motion.button>
+            )}
+          {/* Portfolio Showcase - visually emphasized and expanded with 3-column grid */}
+          </div> {/* <-- Close Ideas & Backlog column */}
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col w-full min-w-0 max-w-none bg-white rounded-xl shadow-md overflow-hidden border border-emerald-100">
+              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 border-b border-emerald-200">
+                <div className="flex items-center gap-2">
+                  <span className="p-1 bg-white/20 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                      <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                      <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                      <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                      <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                  </span>
+                  <span className="font-semibold text-white text-base">Portfolio Showcase</span>
+                  <span className="text-xs bg-emerald-300/30 text-white px-1.5 py-0.5 rounded-full">
+                    {showcaseSolutions.length}
+                  </span>
+                </div>
+                <div className="text-xs text-emerald-100 ml-7 -mt-0.5">Completed Projects & Achievements</div>
+              </div>
+              
+              {/* Grid layout for portfolio items */}
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {showcaseSolutions.length === 0 ? (
+                    <div className="col-span-full text-center p-8 text-slate-500 bg-emerald-50/30 rounded-lg border border-dashed border-emerald-200">
+                      <motion.div 
+                        className="flex flex-col items-center"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <div className="w-16 h-16 mb-3 rounded-full bg-emerald-50 flex items-center justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-300">
+                            <path d="M8.4 10.6a6 6 0 1 1 0 2.8"></path>
+                            <path d="M2 18a1 1 0 1 0 2 0 1 1 0 1 0-2 0Z"></path>
+                            <path d="M12 22a10 10 0 0 0 10-10c0-1.1-1.1-2-2-2a2 2 0 0 0-2 2"></path>
+                          </svg>
+                        </div>
+                        <h3 className="text-slate-700 font-medium text-lg mb-2">Build Your Portfolio</h3>
+                        <p className="text-sm max-w-md mb-4">Showcase your completed work and achievements here</p>
+                        {onAddSolution && (
+                          <motion.button
+                            onClick={onAddSolution}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg font-medium shadow-sm flex items-center gap-2 transition-colors duration-200"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M12 5v14"></path>
+                              <path d="M5 12h14"></path>
+                            </svg>
+                            Add First Portfolio Item
+                          </motion.button>
+                        )}
+                      </motion.div>
+                    </div>
+                  ) : (
+                    showcaseSolutions.map((solution, index) => (
+                      <PortfolioCard
+                        key={solution.id}
+                        solution={solution}
+                        onClick={() => setActiveSolution(solution)}
+                        onEdit={onUpdateSolution ? () => setEditingSolution(solution) : undefined}
+                        onDelete={onDeleteSolution ? () => onDeleteSolution(solution.id) : undefined}
+                        editable={!!onUpdateSolution || !!onDeleteSolution}
+                        index={index}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+              
+              {onAddSolution && showcaseSolutions.length > 0 && (
+                <motion.button
+                  onClick={onAddSolution}
+                  className="mx-3 mb-3 mt-1 px-3 py-2 w-auto bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm border border-emerald-200 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 5v14"></path>
+                    <path d="M5 12h14"></path>
+                  </svg>
+                  Add portfolio item
+                </motion.button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Edit Modal */}
       <AnimatePresence>
@@ -334,6 +559,319 @@ export function SolutionWorkshop({
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+// BoardColumn with cardType and widthClass for custom layouts
+
+// BoardColumn with cardType and widthClass for custom layouts
+interface BoardColumnProps {
+  title: string;
+  subtitle?: string;
+  color: 'amber' | 'blueprint' | 'emerald';
+  count: number;
+  solutions: Solution[];
+  onCardClick: (solution: Solution) => void;
+  onEdit?: (solution: Solution) => void;
+  onDelete?: (id: string) => void;
+  editable?: boolean;
+  onAddSolution?: () => void;
+  cardType?: 'minimal' | 'medium' | 'portfolio';
+  widthClass?: string;
+  maxCards?: number;
+}
+
+function BoardColumn({
+  title,
+  subtitle,
+  color,
+  count,
+  solutions,
+  onCardClick,
+  onEdit,
+  onDelete,
+  editable,
+  onAddSolution,
+  cardType = 'medium',
+  widthClass = '',
+  maxCards
+}: BoardColumnProps) {
+  // Color classes for column accent
+  const colorMap = {
+    amber: 'bg-amber-400',
+    blueprint: 'bg-blue-500',
+    emerald: 'bg-emerald-400',
+  };
+  const borderColorMap = {
+    amber: 'border-amber-300',
+    blueprint: 'border-blue-300',
+    emerald: 'border-emerald-300',
+  };
+  // Limit cards if maxCards is set
+  const visibleSolutions = typeof maxCards === 'number' ? solutions.slice(0, maxCards) : solutions;
+  return (
+    <div className={`flex flex-col ${widthClass || 'w-80 min-w-[320px] max-w-[340px]'} bg-white rounded-xl shadow-md border-t-4 ${colorMap[color]} ${borderColorMap[color]} border p-0`}>
+      <div className="flex flex-col gap-0.5 px-4 py-3 border-b border-gray-200">
+        <div className="flex items-center gap-2">
+          <span className={`w-3 h-3 rounded-full ${colorMap[color]}`}></span>
+          <span className="font-semibold text-gray-800 text-base">{title}</span>
+          <span className="text-xs text-gray-400">({count})</span>
+        </div>
+        {subtitle && <span className="text-xs text-gray-400 ml-5 -mt-1">{subtitle}</span>}
+      </div>
+      <div className="flex-1 overflow-y-auto px-2 py-3 space-y-3">
+        {visibleSolutions.map(s => (
+          <TrelloCard
+            key={s.id}
+            solution={s}
+            onClick={() => onCardClick(s)}
+            onEdit={onEdit ? () => onEdit(s) : undefined}
+            onDelete={onDelete ? () => onDelete(s.id) : undefined}
+            editable={editable}
+            cardType={cardType}
+          />
+        ))}
+        {/* If maxCards is set and there are more, show a subtle fade or warning */}
+        {typeof maxCards === 'number' && solutions.length > maxCards && (
+          <div className="text-xs text-gray-400 text-center mt-2">Only showing the first {maxCards} items</div>
+        )}
+      </div>
+      {onAddSolution && (
+        <button
+          onClick={onAddSolution}
+          className="mx-3 mb-3 mt-1 px-3 py-2 w-auto bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-md text-sm font-medium flex items-center gap-2 shadow-sm border border-amber-200"
+        >
+          + Add new idea
+        </button>
+      )}
+    </div>
+  );
+}
+
+// TrelloCard with cardType for Blueprint/Workbench/Showcase
+function TrelloCard({ solution, onClick, onEdit, onDelete, editable, cardType = 'medium' }: {
+  solution: Solution;
+  onClick: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  editable?: boolean;
+  cardType?: 'minimal' | 'medium' | 'portfolio';
+}) {
+  // Card hover color
+  // Minimal: Blueprint (title, tags)
+  // Medium: Workbench (title, desc, progress, tags)
+  // Portfolio: Showcase (title, desc, thumbnail, tags, date, link)
+  if (cardType === 'minimal') {
+    return (
+      <motion.div
+        whileHover={{ y: -1, scale: 1.01 }}
+        whileTap={{ scale: 0.98 }}
+        className="relative bg-white rounded-md shadow-sm group border border-gray-200 hover:border-amber-400 transition-all duration-150 cursor-pointer px-3 py-2 flex flex-col gap-1 min-h-[48px]"
+        onClick={onClick}
+      >
+        {editable && (
+          <div className="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+            {onEdit && (
+              <button
+                className="p-0.5 rounded hover:bg-blue-100 text-xs text-blue-600 bg-white border border-blue-200"
+                onClick={e => { e.stopPropagation(); onEdit(); }}
+                title="Edit"
+              >✎</button>
+            )}
+            {onDelete && (
+              <button
+                className="p-0.5 rounded hover:bg-red-100 text-xs text-red-600 bg-white border border-red-200"
+                onClick={e => { e.stopPropagation(); onDelete(); }}
+                title="Delete"
+              >🗑</button>
+            )}
+          </div>
+        )}
+        <div className="flex items-center gap-1 mb-1">
+          <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+          <div className="font-semibold text-gray-800 text-sm truncate">{solution.title}</div>
+        </div>
+        <div className="text-[10px] text-gray-500 line-clamp-1 ml-3">
+          {solution.previewDescription || solution.description.substring(0, 60) + (solution.description.length > 60 ? '...' : '')}
+        </div>
+        {solution.tags && solution.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-0.5">
+            {solution.tags.slice(0, 2).map(tag => (
+              <span key={tag} className="px-2 py-0.5 text-[10px] rounded-full bg-amber-50 text-amber-700 border border-amber-200">{tag}</span>
+            ))}
+            {solution.tags.length > 2 && (
+              <span className="px-2 py-0.5 text-[10px] rounded-full bg-amber-50 text-amber-700 border border-amber-200">+{solution.tags.length - 2}</span>
+            )}
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+  if (cardType === 'portfolio') {
+    return (
+      <motion.div
+        whileHover={{ y: -2, scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="relative bg-white rounded-xl shadow-lg group border border-emerald-200 hover:border-emerald-400 transition-all duration-150 cursor-pointer p-4 flex flex-col gap-2 h-full overflow-hidden"
+        onClick={onClick}
+      >
+        {editable && (
+          <div className="absolute top-2 right-2 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+            {onEdit && (
+              <button
+                className="p-1 rounded hover:bg-blue-100 text-xs text-blue-600 bg-white border border-blue-200"
+                onClick={e => { e.stopPropagation(); onEdit(); }}
+                title="Edit"
+              >✎</button>
+            )}
+            {onDelete && (
+              <button
+                className="p-1 rounded hover:bg-red-100 text-xs text-red-600 bg-white border border-red-200"
+                onClick={e => { e.stopPropagation(); onDelete(); }}
+                title="Delete"
+              >🗑</button>
+            )}
+          </div>
+        )}
+        
+        {/* Completed Status Badge */}
+        <div className="absolute top-3 left-3 z-10 bg-emerald-600 text-white text-xs px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6 9 17l-5-5"></path>
+          </svg>
+          <span>Completed</span>
+        </div>
+        
+        {/* Image container */}
+        <div className="relative h-48 overflow-hidden">
+          {/* Default visual if no thumbnail */}
+          {!solution.thumbnailUrl && (
+            <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+              <div className="text-white text-opacity-90 text-3xl font-bold">{solution.title.substring(0, 2).toUpperCase()}</div>
+              <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+            </div>
+          )}
+          
+          {/* Thumbnail image if available */}
+          {solution.thumbnailUrl && (
+            <img 
+              src={solution.thumbnailUrl} 
+              alt={solution.title} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+            />
+          )}
+          
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-70"></div>
+        </div>
+        
+        {/* Content */}
+        <div className="p-4 flex-1 flex flex-col">
+          <h3 className="font-semibold text-slate-800 text-lg mb-1 group-hover:text-emerald-700 transition-colors duration-200">{solution.title}</h3>
+          
+          <div className="text-sm text-slate-600 mb-3 line-clamp-3 flex-grow">
+            {solution.previewDescription || solution.description.substring(0, 160) + (solution.description.length > 160 ? '...' : '')}
+          </div>
+          
+          {solution.date && (
+            <div className="flex items-center text-xs text-slate-500 mb-2">
+              <Clock size={12} className="mr-1" />
+              {solution.date}
+            </div>
+          )}
+          
+          {solution.tags && solution.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-auto">
+              {solution.tags.slice(0, 3).map(tag => (
+                <span key={tag} className="px-2 py-0.5 text-[11px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">{tag}</span>
+              ))}
+              {solution.tags.length > 3 && (
+                <span className="px-2 py-0.5 text-[11px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">+{solution.tags.length - 3}</span>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Bottom action bar */}
+        <div className="px-4 py-3 border-t border-emerald-100 bg-emerald-50/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1 text-xs text-emerald-700">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+              </svg>
+              <span>View showcase</span>
+            </div>
+            
+            {solution.link && (
+              <a
+                href={solution.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-800 font-medium"
+                onClick={e => e.stopPropagation()}
+              >
+                <ExternalLink size={12} />
+                Open
+              </a>
+            )}
+          </div>
+        </div>
+        
+        {/* Bottom accent line */}
+        <div className="h-1 w-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+      </motion.div>
+    );
+  }
+  // Default/medium: Workbench
+  return (
+    <motion.div
+      whileHover={{ y: -2, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="relative bg-white rounded-lg shadow group border border-blue-200 hover:border-blue-400 transition-all duration-150 cursor-pointer px-4 py-3 flex flex-col gap-1 min-h-[72px]"
+      onClick={onClick}
+    >
+      {editable && (
+        <div className="absolute top-2 right-2 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onEdit && (
+            <button
+              className="p-1 rounded hover:bg-blue-100 text-xs text-blue-600 bg-white border border-blue-200"
+              onClick={e => { e.stopPropagation(); onEdit(); }}
+              title="Edit"
+            >✎</button>
+          )}
+          {onDelete && (
+            <button
+              className="p-1 rounded hover:bg-red-100 text-xs text-red-600 bg-white border border-red-200"
+              onClick={e => { e.stopPropagation(); onDelete(); }}
+              title="Delete"
+            >🗑</button>
+          )}
+        </div>
+      )}
+      <div className="font-semibold text-gray-800 text-base mb-0.5 truncate">{solution.title}</div>
+      <div className="text-xs text-gray-500 mb-1 line-clamp-2">{solution.previewDescription || solution.description.substring(0, 100) + (solution.description.length > 100 ? '...' : '')}</div>
+      {solution.status === 'workbench' && (
+        <div className="mb-1">
+          <div className="flex justify-between text-[11px] text-gray-400 mb-0.5">
+            <span>Progress</span>
+            <span>{solution.progress}%</span>
+          </div>
+          <div className="w-full bg-blue-100 h-1 rounded-full overflow-hidden">
+            <div className="bg-blue-400 h-full transition-all duration-500" style={{ width: `${solution.progress}%` }}></div>
+          </div>
+        </div>
+      )}
+      {solution.tags && solution.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1">
+          {solution.tags.slice(0, 2).map(tag => (
+            <span key={tag} className="px-2 py-0.5 text-[11px] rounded-full bg-blue-50 text-blue-700 border border-blue-200">{tag}</span>
+          ))}
+          {solution.tags.length > 2 && (
+            <span className="px-2 py-0.5 text-[11px] rounded-full bg-blue-50 text-blue-700 border border-blue-200">+{solution.tags.length - 2} more</span>
+          )}
+        </div>
+      )}
+    </motion.div>
   );
 }
 
@@ -652,366 +1190,239 @@ function EditSolutionModal({
       </motion.form>
     </motion.div>
   );
-// ...existing code...
 }
 
-// Filter button component 
-function FilterButton({
-  label,
-  count,
-  color = "default",
-  icon,
-  onClick,
-  ariaLabel,
-  selected
-}: {
-  label: string;
-  count: number;
-  active?: boolean; // Kept for type consistency if used elsewhere, though not directly in this logic
-  color?: "default" | "amber" | "blueprint" | "emerald";
-  icon?: React.ReactNode;
+// IdeaCard component for the Ideas & Backlog section
+function IdeaCard({ solution, onClick, onEdit, onDelete, editable }: {
+  solution: Solution;
   onClick: () => void;
-  ariaLabel?: string;
-  selected?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  editable?: boolean;
 }) {
-  const baseClasses = "px-2.5 py-1.5 text-xs rounded-md flex items-center gap-1.5 transition-colors focus:outline-none focus:ring-2";
-  let colorClasses = "bg-gray-700/50 hover:bg-gray-700/80 focus:ring-gray-500";
-  if (selected) {
-    if (color === 'amber') colorClasses = "bg-amber-500/80 text-white focus:ring-amber-400 hover:bg-amber-500";
-    else if (color === 'blueprint') colorClasses = "bg-blueprint/80 text-white focus:ring-blueprint hover:bg-blueprint";
-    else if (color === 'emerald') colorClasses = "bg-emerald-500/80 text-white focus:ring-emerald-400 hover:bg-emerald-500";
-    else colorClasses = "bg-gray-600 text-white focus:ring-gray-400 hover:bg-gray-500"; // Default selected
-  }
-  return (
-    <button onClick={onClick} className={cn(baseClasses, colorClasses)} aria-label={ariaLabel}>
-      {icon}{label} ({count})
-    </button>
-  );
-}
-
-export const SolutionBlueprint = SolutionWorkshop;
-
-// Mobile View Components
-
-interface SolutionWorkshopMobileViewProps {
-  solutions: Solution[];
-  blueprintSolutions: Solution[];
-  workbenchSolutions: Solution[];
-  showcaseSolutions: Solution[];
-  onSelectSolution: (solution: Solution) => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  filterTag: string | null;
-  setFilterTag: (tag: string | null) => void;
-  allTags: string[];
-}
-
-function SolutionWorkshopMobileView({
-  blueprintSolutions,
-  workbenchSolutions,
-  showcaseSolutions,
-  onSelectSolution,
-  searchQuery,
-  setSearchQuery,
-  filterTag,
-  setFilterTag,
-  allTags
-}: SolutionWorkshopMobileViewProps) {
-  const [activeTab, setActiveTab] = useState<'blueprint' | 'workbench' | 'showcase'>('workbench');
-  const [showSearch, setShowSearch] = useState(false);
-  const [showTagFilter, setShowTagFilter] = useState(false);
-
-  const tabs = [
-    { id: 'blueprint', label: 'Blueprint', count: blueprintSolutions.length, color: 'amber', icon: <PenTool size={16}/> },
-    { id: 'workbench', label: 'Workbench', count: workbenchSolutions.length, color: 'blueprint', icon: <Wrench size={16}/> },
-    { id: 'showcase', label: 'Showcase', count: showcaseSolutions.length, color: 'emerald', icon: <CheckCircle size={16}/> },
-  ] as const;
-
-  let currentSolutionsToDisplay: Solution[] = [];
-  if (activeTab === 'blueprint') currentSolutionsToDisplay = blueprintSolutions;
-  else if (activeTab === 'workbench') currentSolutionsToDisplay = workbenchSolutions;
-  else if (activeTab === 'showcase') currentSolutionsToDisplay = showcaseSolutions;
-
-  if (filterTag) {
-    currentSolutionsToDisplay = currentSolutionsToDisplay.filter(s => s.tags.includes(filterTag));
-  }
-  if (searchQuery) {
-    currentSolutionsToDisplay = currentSolutionsToDisplay.filter(s => 
-        s.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        s.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }
-
-  return (
-    <div className="p-2 bg-gray-900 text-gray-100 flex flex-col h-full font-mono text-sm">
-      {/* Header with Search/Filter Toggles */}
-      <div className="flex justify-between items-center p-2 mb-2">
-        <h2 className="text-lg font-semibold">Solution Workshop</h2>
-        <div className="flex gap-2">
-          <button onClick={() => setShowSearch(!showSearch)} className="p-1.5 rounded-md hover:bg-gray-700">
-            {showSearch ? <X size={18} /> : <Search size={18} />}
-          </button>
-          <button onClick={() => setShowTagFilter(!showTagFilter)} className="p-1.5 rounded-md hover:bg-gray-700">
-            {showTagFilter ? <X size={18} /> : <Filter size={18} />}
-          </button>
-        </div>
-      </div>
-
-      {/* Search Input */}
-      <AnimatePresence>
-        {showSearch && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }} 
-            animate={{ opacity: 1, height: 'auto' }} 
-            exit={{ opacity: 0, height: 0 }} 
-            className="mb-2 px-1"
-          >
-            <input 
-              type="text"
-              placeholder="Search all solutions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-2 text-xs rounded-md bg-gray-800 border border-gray-700 focus:ring-1 focus:ring-blueprint focus:border-blueprint"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Tag Filter Dropdown */}
-      <AnimatePresence>
-        {showTagFilter && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-3 p-2 bg-gray-800 rounded-md mx-1"
-          >
-            <h3 className="text-xs font-semibold mb-1.5 text-gray-400">Filter by Tag:</h3>
-            <div className="flex flex-wrap gap-1.5">
-              <button 
-                onClick={() => setFilterTag(null)} 
-                className={cn(
-                  'px-2 py-1 text-xs rounded-full',
-                  !filterTag ? 'bg-blueprint text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                )}
-              >
-                All Tags
-              </button>
-              {allTags.map(tag => (
-                <button 
-                  key={tag} 
-                  onClick={() => setFilterTag(tag)} 
-                  className={cn(
-                    'px-2 py-1 text-xs rounded-full',
-                    filterTag === tag ? 'bg-blueprint text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                  )}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Tabs */}
-      <div className="flex border-b border-gray-700 mb-1">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 py-2.5 px-1 text-xs font-medium flex items-center justify-center gap-1.5 transition-colors 
-              ${activeTab === tab.id 
-                ? `border-b-2 ${tab.id === 'blueprint' ? 'border-amber-500 text-amber-400' : tab.id === 'workbench' ? 'border-blueprint text-blueprint' : 'border-emerald-500 text-emerald-400'}` 
-                : 'text-gray-500 hover:text-gray-300 border-b-2 border-transparent'
-              }`}
-          >
-            {tab.icon} 
-            {tab.label} ({tab.id === 'blueprint' ? blueprintSolutions.filter(s => !filterTag || s.tags.includes(filterTag)).filter(s => !searchQuery || s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase())).length :
-                         tab.id === 'workbench' ? workbenchSolutions.filter(s => !filterTag || s.tags.includes(filterTag)).filter(s => !searchQuery || s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase())).length :
-                         showcaseSolutions.filter(s => !filterTag || s.tags.includes(filterTag)).filter(s => !searchQuery || s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase())).length })
-          </button>
-        ))}
-      </div>
-
-      {/* Content List */}
-      <div className="flex-grow overflow-y-auto space-y-2 p-1">
-        <AnimatePresence>
-          {currentSolutionsToDisplay.length > 0 ? (
-            currentSolutionsToDisplay.map(solution => (
-              <MobileSolutionCard key={solution.id} solution={solution} onClick={() => onSelectSolution(solution)} />
-            ))
-          ) : (
-            <motion.p 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              className="text-center text-gray-500 py-6 text-xs"
-            >
-              No solutions match your criteria.
-            </motion.p>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
-
-// Enhanced Mobile Solution Card
-function MobileSolutionCard({ solution, onClick }: { solution: Solution; onClick: () => void }) {
-  const statusConfig = {
-    blueprint: { icon: <PenTool size={16} className="text-amber-500" />, color: 'amber', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/30', progressColor: 'bg-amber-500' },
-    workbench: { icon: <Wrench size={16} className="text-blueprint" />, color: 'blueprint', bgColor: 'bg-blueprint/10', borderColor: 'border-blueprint/30', progressColor: 'bg-blueprint' },
-    showcase: { icon: <CheckCircle size={16} className="text-emerald-500" />, color: 'emerald', bgColor: 'bg-emerald-500/10', borderColor: 'border-emerald-500/30', progressColor: 'bg-emerald-500' },
-  };
-  const config = statusConfig[solution.status];
-
-  const getTextColorClass = (colorName: string) => {
-    const colorMap: Record<string, string> = {
-      amber: 'text-amber-400',
-      blueprint: 'text-blueprint',
-      emerald: 'text-emerald-400',
-    };
-    return colorMap[colorName] || 'text-gray-300';
-  };
-
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 5 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -5 }}
-      transition={{ duration: 0.15 }}
+      whileHover={{ y: -2, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="relative bg-white rounded-lg shadow-sm group border border-amber-100 hover:border-amber-300 transition-all duration-150 cursor-pointer overflow-hidden"
       onClick={onClick}
-      className={cn(
-        'w-full p-2.5 rounded-lg border',
-        config.borderColor, 
-        config.bgColor, 
-        `hover:border-${config.color}-500/60 hover:shadow-sm`,
-        'cursor-pointer'
-      )}
     >
-      <div className="flex items-start gap-2.5">
-        <div className="flex-shrink-0 pt-0.5">{config.icon}</div>
-        <div className="flex-grow min-w-0">
-          <h3 className={cn('font-semibold text-xs mb-0.5 truncate', getTextColorClass(config.color))}>{solution.title}</h3>
-          <p className="text-xs text-gray-400 line-clamp-2 mb-1.5">
-            {solution.previewDescription || solution.description}
-          </p>
-          
-          {/* Thumbnail image if available */}
-          {solution.thumbnailUrl && (
-            <div className="mb-1.5 h-16 overflow-hidden rounded bg-gray-900 relative">
-              <img src={solution.thumbnailUrl} alt={solution.title} className="w-full h-full object-cover" />
-            </div>
-          )}
-          
-          {solution.status === 'workbench' && solution.progress > 0 && (
-            <div className="mb-1.5">
-              <div className="flex justify-between text-[11px] text-gray-500 mb-0.5">
-                <span>Progress</span>
-                <span>{solution.progress}%</span>
-              </div>
-              <div className="w-full bg-gray-700/70 h-1 rounded-full overflow-hidden">
-                <div className={cn(config.progressColor, 'h-full')} style={{ width: `${solution.progress}%` }}></div>
-              </div>
-            </div>
-          )}
-          {solution.status === 'showcase' && solution.date && (
-            <p className="text-[11px] text-gray-500 mb-1.5 flex items-center"><Clock size={11} className="inline mr-1"/>{solution.date}</p>
-          )}
-
-          {solution.tags && solution.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1">
-              {solution.tags.slice(0, 2).map(tag => (
-                <span key={tag} className={`px-1.5 py-0.5 text-[10px] rounded-full bg-gray-700/80 text-gray-400`}>{tag}</span>
-              ))}
-              {solution.tags.length > 2 && (
-                 <span className={`px-1.5 py-0.5 text-[10px] rounded-full bg-gray-700/80 text-gray-400`}>+{solution.tags.length - 2} more</span>
-              )}
-            </div>
-          )}
+      <div className="px-3 py-2.5 flex flex-col gap-1 min-h-[60px]">
+        {editable && (
+          <div className="absolute top-1 right-1 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+            {onEdit && (
+              <motion.button
+                className="p-1 rounded-full hover:bg-amber-100 text-amber-600 bg-white/80 backdrop-blur-sm"
+                onClick={e => { e.stopPropagation(); onEdit(); }}
+                title="Edit"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                  <path d="m15 5 4 4"></path>
+                </svg>
+              </motion.button>
+            )}
+            {onDelete && (
+              <motion.button
+                className="p-1 rounded-full hover:bg-red-100 text-red-600 bg-white/80 backdrop-blur-sm"
+                onClick={e => { e.stopPropagation(); onDelete(); }}
+                title="Delete"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18"></path>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                </svg>
+              </motion.button>
+            )}
+          </div>
+        )}
+        
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-1.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-400"></div>
+            <div className="font-medium text-slate-800 text-sm line-clamp-1">{solution.title}</div>
+          </div>
+          <div className="bg-amber-50 rounded-full w-5 h-5 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
+              <path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"></path>
+              <path d="M12 7c1-.56 2.78-2 5-2 .97 0 1.94.29 2.75.83"></path>
+            </svg>
+          </div>
         </div>
+        
+        <div className="text-xs text-slate-500 line-clamp-2 mb-1.5">
+          {solution.previewDescription || solution.description.substring(0, 100) + (solution.description.length > 100 ? '...' : '')}
+        </div>
+        
+        {solution.tags && solution.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-auto">
+            {solution.tags.slice(0, 2).map(tag => (
+              <span key={tag} className="px-2 py-0.5 text-[10px] rounded-full bg-amber-50 text-amber-700 border border-amber-100">{tag}</span>
+            ))}
+            {solution.tags.length > 2 && (
+              <span className="px-2 py-0.5 text-[10px] rounded-full bg-amber-50 text-amber-700 border border-amber-100">+{solution.tags.length - 2}</span>
+            )}
+          </div>
+        )}
       </div>
+      <div className="h-1 w-full bg-gradient-to-r from-amber-200 to-amber-400 opacity-70"></div>
     </motion.div>
   );
 }
 
-// Default example solutions for fallback/demo
-export const exampleSolutions: Solution[] = [
-  {
-    id: 'blueprint-1',
-    title: 'Legacy System Dependencies',
-    description: 'Organizations stuck with 15+ year old infrastructure that slows innovation',
-    impact: 'Will enable faster deployments and reduce maintenance costs by 60%',
-    status: 'blueprint',
-    progress: 0,
-    tags: ['Legacy Systems', 'Architecture'],
-    relatedSolutions: ['workbench-2', 'showcase-1'],
-    detailComponentId: 'LegacySystemsShowcase',
-    thumbnailUrl: '/images/legacy-systems-thumb.jpg',
-    previewDescription: 'A systematic approach to modernizing outdated but critical infrastructure while minimizing business disruption'
-  },
-  {
-    id: 'blueprint-2',
-    title: 'Customer Behavior Blind Spots',
-    description: 'Companies missing key insights into customer decision-making patterns',
-    impact: 'Will surface hidden opportunities and reduce customer acquisition costs',
-    status: 'blueprint',
-    progress: 0,
-    tags: ['Analytics', 'Customer Experience'],
-    detailComponentId: 'CustomerInsightsShowcase',
-    thumbnailUrl: '/images/customer-insights-thumb.jpg',
-    previewDescription: 'Uncovering hidden patterns in customer behavior to drive more effective marketing and product decisions'
-  },
-  {
-    id: 'workbench-1',
-    title: 'Portfolio Communication Clarity',
-    description: 'Showcasing problem-solving approach in a memorable, effective way',
-    impact: 'This very site—creating a system to demonstrate how I think',
-    status: 'workbench',
-    progress: 75,
-    tags: ['Personal Brand', 'UX Design'],
-    link: '#',
-    relatedSolutions: ['showcase-2'],
-    detailComponentId: 'PortfolioSystemShowcase',
-    thumbnailUrl: '/images/portfolio-system-thumb.jpg',
-    previewDescription: 'Meta-project: This very portfolio system that showcases my approach to problem-solving through interactive design'
-  },
-  {
-    id: 'workbench-2',
-    title: 'Cross-Department Data Silos',
-    description: 'Isolated systems preventing consolidated business intelligence',
-    impact: 'Reducing manual entry by 70% across 5 departments',
-    status: 'workbench',
-    progress: 40,
-    tags: ['Data Integration', 'Business Intelligence'],
-    relatedSolutions: ['blueprint-1', 'showcase-1'],
-    previewDescription: 'Breaking down organizational data barriers to enable unified business intelligence and decision-making'
-  },
-  {
-    id: 'showcase-1',
-    title: 'E-commerce System Fragmentation',
-    description: 'Multiple disconnected tools causing order delays and inventory errors',
-    impact: 'Reduced operational overhead by 40% and eliminated order delays',
-    status: 'showcase',
-    progress: 100,
-    date: 'Q4 2023',
-    tags: ['E-commerce', 'Systems Integration'],
-    link: '/case-studies/ecommerce',
-    relatedSolutions: ['workbench-2', 'blueprint-1'],
-    previewDescription: 'An end-to-end e-commerce solution that eliminated inventory discrepancies and streamlined the order process'
-  },
-  {
-    id: 'showcase-2',
-    title: 'Manual Fulfillment Bottlenecks',
-    description: 'Order processing delays impacting customer satisfaction',
-    impact: 'Cut processing time from 3 days to 4 hours',
-    status: 'showcase',
-    progress: 100,
-    date: 'Q2 2023',
-    tags: ['Operations', 'Workflow Automation'],
-    link: '/case-studies/fulfillment',
-    relatedSolutions: ['workbench-1'],
-    previewDescription: 'A workflow automation solution that dramatically reduced order fulfillment times and improved customer satisfaction'
-  }
-];
+// PortfolioCard component for the Portfolio Showcase section with rich visual presentation
+function PortfolioCard({ solution, onClick, onEdit, onDelete, editable, index = 0 }: {
+  solution: Solution;
+  onClick: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  editable?: boolean;
+  index?: number;
+}) {
+  // Staggered animation delay based on index
+  const staggerDelay = index * 0.05;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        duration: 0.4,
+        delay: staggerDelay,
+        ease: [0.25, 0.1, 0.25, 1.0]
+      }}
+      whileHover={{ 
+        y: -4,
+        transition: { duration: 0.2 }
+      }}
+      whileTap={{ scale: 0.98 }}
+      className="relative bg-white rounded-xl shadow-md group border border-emerald-100 hover:border-emerald-300 transition-all duration-200 cursor-pointer overflow-hidden h-full flex flex-col"
+      onClick={onClick}
+    >
+      {editable && (
+        <div className="absolute top-2 right-2 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onEdit && (
+            <motion.button
+              className="p-1.5 rounded-full hover:bg-emerald-100 text-emerald-600 bg-white/90 backdrop-blur-sm shadow-sm"
+              onClick={e => { e.stopPropagation(); onEdit(); }}
+              title="Edit"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                <path d="m15 5 4 4"></path>
+              </svg>
+            </motion.button>
+          )}
+          {onDelete && (
+            <motion.button
+              className="p-1.5 rounded-full hover:bg-red-100 text-red-600 bg-white/90 backdrop-blur-sm shadow-sm"
+              onClick={e => { e.stopPropagation(); onDelete(); }}
+              title="Delete"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18"></path>
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+              </svg>
+            </motion.button>
+          )}
+        </div>
+      )}
+      
+      {/* Completed Status Badge */}
+      <div className="absolute top-3 left-3 z-10 bg-emerald-600 text-white text-xs px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+        <span>Completed</span>
+      </div>
+      
+      {/* Image container */}
+      <div className="relative h-48 overflow-hidden">
+        {/* Default visual if no thumbnail */}
+        {!solution.thumbnailUrl && (
+          <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+            <div className="text-white text-opacity-90 text-3xl font-bold">{solution.title.substring(0, 2).toUpperCase()}</div>
+            <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+          </div>
+        )}
+        
+        {/* Thumbnail image if available */}
+        {solution.thumbnailUrl && (
+          <img 
+            src={solution.thumbnailUrl} 
+            alt={solution.title} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+          />
+        )}
+        
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-70"></div>
+      </div>
+      
+      {/* Content */}
+      <div className="p-4 flex-1 flex flex-col">
+        <h3 className="font-semibold text-slate-800 text-lg mb-1 group-hover:text-emerald-700 transition-colors duration-200">{solution.title}</h3>
+        
+        <div className="text-sm text-slate-600 mb-3 line-clamp-3 flex-grow">
+          {solution.previewDescription || solution.description.substring(0, 160) + (solution.description.length > 160 ? '...' : '')}
+        </div>
+        
+        {solution.date && (
+          <div className="flex items-center text-xs text-slate-500 mb-2">
+            <Clock size={12} className="mr-1" />
+            {solution.date}
+          </div>
+        )}
+        
+        {solution.tags && solution.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-auto">
+            {solution.tags.slice(0, 3).map(tag => (
+              <span key={tag} className="px-2 py-0.5 text-[11px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">{tag}</span>
+            ))}
+            {solution.tags.length > 3 && (
+              <span className="px-2 py-0.5 text-[11px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">+{solution.tags.length - 3}</span>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* Bottom action bar */}
+      <div className="px-4 py-3 border-t border-emerald-100 bg-emerald-50/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1 text-xs text-emerald-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+            </svg>
+            <span>View showcase</span>
+          </div>
+          
+          {solution.link && (
+            <a
+              href={solution.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-800 font-medium"
+              onClick={e => e.stopPropagation()}
+            >
+              <ExternalLink size={12} />
+              Open
+            </a>
+          )}
+        </div>
+      </div>
+      
+      {/* Bottom accent line */}
+      <div className="h-1 w-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
+    </motion.div>
+  );
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Container } from './ui/container';
 import { cn } from '@/lib/utils';
-import { SolutionBlueprint } from './KanbanPortfolio';
+import { SolutionWorkshop } from './KanbanPortfolio';
 import { motion } from 'framer-motion';
 
 export function SolutionBlueprintSection({ 
@@ -44,7 +44,7 @@ export function SolutionBlueprintSection({
             }}
             transition={{ delay: 0.3, duration: 0.6 }}
           >
-            <SolutionBlueprint />
+            <SolutionWorkshop />
           </motion.div>
         </div>
       </Container>
