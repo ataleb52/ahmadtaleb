@@ -1,5 +1,5 @@
 // BoardColumn with cardType and widthClass for custom layouts
-function BoardColumn(props) {
+export default function BoardColumn(props) {
   const { 
     title, 
     subtitle, 
