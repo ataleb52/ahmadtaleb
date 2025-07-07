@@ -30,35 +30,46 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   // Remove previous progress bar logic. We'll add a dedicated 'In Progress' row/column for 'workbench' items.
 
   return (
-    <div className="flex-1 w-full overflow-x-auto overflow-y-hidden">
+    <div className="w-full flex-1 h-full min-h-0">
       {/* Current Initiative Progress Tracker */}
       {workbenchSolutions.length > 0 && (
         <div className="px-6 pt-4 pb-2" style={{ minWidth: 900 }}>
-          <div className="w-full bg-white rounded-xl shadow-md overflow-hidden border border-blue-100">
-            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 border-b border-blue-200">
+          <div className="w-full bg-white rounded-xl shadow-md border border-blue-100">
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-3 border-b border-blue-200 rounded-t-xl">
               <div className="flex items-center gap-2">
                 <span className="p-1 bg-white/20 rounded">
                   <Clock size={14} className="text-white" />
                 </span>
                 <span className="font-semibold text-white text-base">Current Initiative</span>
-                <span className="text-xs bg-blue-300/30 text-white px-1.5 py-0.5 rounded-full">
-                  {workbenchSolutions.length}
-                </span>
               </div>
-              <div className="text-xs text-blue-100 ml-7 -mt-0.5">In-progress strategic work</div>
             </div>
-            <div className="flex-1 px-3 py-3">
+            <div className="flex-1 px-2 py-2">
               <motion.div
-                className="bg-white rounded-lg shadow-sm p-3 border border-blue-100 hover:border-blue-300 transition-all duration-200"
+                className="bg-white rounded-lg shadow-sm p-2 border border-blue-100 hover:border-blue-300 transition-all duration-200 text-left cursor-pointer"
                 whileHover={{ y: -2 }}
+                onClick={() => setActiveSolution(workbenchSolutions[0])}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-medium text-slate-800 text-base">{workbenchSolutions[0].title}</h3>
-                  <div className="flex items-center gap-1">
+                <div className="flex items-start justify-between mb-1" onClick={e => e.stopPropagation()}>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <h3 className="font-medium text-slate-800 text-sm truncate">{workbenchSolutions[0].title}</h3>
+                      {workbenchSolutions[0].tags && workbenchSolutions[0].tags.length > 0 && (
+                        <div className="flex flex-wrap gap-0.5">
+                          {workbenchSolutions[0].tags.slice(0, 2).map(tag => (
+                            <span key={tag} className="px-1.5 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-700 border border-blue-100">{tag}</span>
+                          ))}
+                          {workbenchSolutions[0].tags.length > 2 && (
+                            <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-700 border border-blue-100">+{workbenchSolutions[0].tags.length - 2}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-0.5 ml-1">
                     {onUpdateSolution && (
                       <button
                         onClick={() => setEditingSolution(workbenchSolutions[0])}
-                        className="p-1 rounded text-blue-500 hover:bg-blue-50"
+                        className="p-0.5 rounded text-blue-500 hover:bg-blue-50"
                         title="Edit"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -69,7 +80,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     )}
                     <button
                       onClick={() => setActiveSolution(workbenchSolutions[0])}
-                      className="p-1 rounded text-blue-500 hover:bg-blue-50"
+                      className="p-0.5 rounded text-blue-500 hover:bg-blue-50"
                       title="View details"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -80,26 +91,17 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     </button>
                   </div>
                 </div>
-                <div className="text-sm text-slate-600 mb-3 line-clamp-2">
+                <div className="text-xs text-slate-600 mb-2 line-clamp-2">
                   {workbenchSolutions[0].previewDescription || workbenchSolutions[0].description.substring(0, 100) + (workbenchSolutions[0].description.length > 100 ? '...' : '')}
                 </div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs text-slate-500 font-medium">Progress</div>
-                  <div className="text-xs text-slate-700">{workbenchSolutions[0].progress || 35}%</div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="text-[11px] text-slate-500 font-medium">Progress</div>
+                  <div className="text-[11px] text-slate-700">{workbenchSolutions[0].progress || 35}%</div>
                 </div>
-                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
+                <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden mb-2">
                   <div className="h-full bg-blue-500" style={{ width: `${workbenchSolutions[0].progress || 35}%` }}></div>
                 </div>
-                {workbenchSolutions[0].tags && workbenchSolutions[0].tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {workbenchSolutions[0].tags.slice(0, 2).map(tag => (
-                      <span key={tag} className="px-2 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-700 border border-blue-100">{tag}</span>
-                    ))}
-                    {workbenchSolutions[0].tags.length > 2 && (
-                      <span className="px-2 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-700 border border-blue-100">+{workbenchSolutions[0].tags.length - 2}</span>
-                    )}
-                  </div>
-                )}
+                {/* tags moved to title row */}
               </motion.div>
             </div>
           </div>
@@ -107,22 +109,18 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
       )}
       
       {/* Main Board Columns */}
-      <div className="flex flex-row gap-6 px-6 py-4 min-h-[400px] h-full" style={{ minWidth: 900 }}>
+      <div className="flex flex-row gap-6 px-6 py-4 flex-1 min-h-0 items-stretch" style={{ minWidth: 900 }}>
         {/* Ideas & Backlog Column */}
-        <div className="flex flex-col w-1/3 min-w-[300px] max-w-[350px] bg-white rounded-xl shadow-md overflow-hidden border border-amber-100">
-          <div className="bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-3 border-b border-amber-200">
+        <div className="flex flex-col w-[100%] min-w-[30px] max-w-[250px] bg-white rounded-xl shadow-md border border-amber-100 flex-1 min-h-0 h-auto">
+          <div className="bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-3 border-b border-amber-200 rounded-t-xl">
             <div className="flex items-center gap-2">
               <span className="p-1 bg-white/20 rounded">
                 <AlertCircle size={14} className="text-white" />
               </span>
               <span className="font-semibold text-white text-base">Ideas & Backlog</span>
-              <span className="text-xs bg-amber-300/30 text-white px-1.5 py-0.5 rounded-full">
-                {blueprintSolutions.length}
-              </span>
             </div>
-            <div className="text-xs text-amber-100 ml-7 -mt-0.5">Future concepts to explore</div>
           </div>
-          <div className="flex-1 overflow-y-auto px-2 py-3 space-y-2">
+          <div className="flex-1 h-full overflow-y-auto px-2 py-3 space-y-2 min-h-0">
             {blueprintSolutions.length === 0 ? (
               <div className="text-center p-5 text-slate-400 bg-amber-50/30 rounded-lg border border-dashed border-amber-200 mx-2">
                 <div className="flex flex-col items-center">
@@ -163,22 +161,26 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
         
         {/* Portfolio Showcase Column */}
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-col w-full min-w-0 max-w-none bg-white rounded-xl shadow-md overflow-hidden border border-emerald-100">
-            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 border-b border-emerald-200">
+        <div className="min-w-0 min-h-0 flex-1 h-auto flex flex-col">
+          <div className="flex flex-col w-full min-w-0 max-w-none bg-white rounded-xl shadow-md overflow-hidden border border-emerald-100 flex-1">
+            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 py-3 border-b border-emerald-200 rounded-t-xl">
               <div className="flex items-center gap-2">
                 <span className="p-1 bg-white/20 rounded">
                   <Box size={14} className="text-white" />
                 </span>
                 <span className="font-semibold text-white text-base">Portfolio Showcase</span>
-                <span className="text-xs bg-emerald-300/30 text-white px-1.5 py-0.5 rounded-full">
-                  {showcaseSolutions.length}
-                </span>
-              </div>
-              <div className="text-xs text-emerald-100 ml-7 -mt-0.5">Completed Projects & Achievements</div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              </div>            </div>
+            <div
+              className="flex-1 h-full overflow-y-auto p-4 min-h-0"
+              style={{
+                // For 3 rows: 3 * (card height + gap). Adjust 632px as needed for your card/gap sizes.
+                maxHeight: showcaseSolutions.length > 6 ? '1200px' : 'none',
+              }}
+            >
+              <div
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                style={{ minHeight: 0 }}
+              >
                 {showcaseSolutions.length === 0 ? (
                   <div className="col-span-full text-center p-8 text-slate-500 bg-emerald-50/30 rounded-lg border border-dashed border-emerald-200">
                     <motion.div 

@@ -133,7 +133,7 @@ export function SolutionWorkshop({
   // Board header and current focus remain here, board columns are extracted
   return (
     <>
-      <div ref={workshopRef} className="relative flex flex-col h-[calc(100vh-120px)] max-h-[700px] bg-gradient-to-br from-slate-50 to-slate-100 font-sans text-sm select-none overflow-hidden">
+      <div ref={workshopRef} className="relative flex flex-col min-h-0 h-auto max-h-none bg-white font-sans text-sm select-none overflow-visible">
         <motion.div 
           className="absolute inset-0 pointer-events-none z-0 opacity-30"
           style={{ background: gradientBackground }}

@@ -16,6 +16,7 @@ const IdeaCard: React.FC<IdeaCardProps> = ({ solution, onClick, onEdit, onDelete
       whileHover={{ y: -2, scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       className="relative bg-white rounded-lg shadow-sm group border border-amber-100 hover:border-amber-300 transition-all duration-150 cursor-pointer overflow-hidden"
+      style={{ padding: '15px' }}
       onClick={onClick}
     >
       {editable && (

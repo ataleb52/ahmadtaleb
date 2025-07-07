@@ -54,7 +54,7 @@ export default function PortfolioEditorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 py-2 flex flex-col">
+    <div className="bg-gray-950 text-gray-100 py-2 flex flex-col min-h-screen overflow-visible">
       <header className="text-center mb-4 px-4 pt-4">
         <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
           Portfolio Content Editor
@@ -64,7 +64,7 @@ export default function PortfolioEditorPage() {
         </p>
       </header>
       
-      <div className="px-2 sm:px-4 lg:px-6 flex-grow">
+      <div className="px-2 sm:px-4 lg:px-6 flex-grow overflow-visible">
         <SolutionWorkshop 
           solutions={solutions} 
           onAddSolution={handleAddSolution} 
